@@ -4,32 +4,35 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#FFFFFF">
+<meta name="theme-color" content="#0A2B60">
 <title>Orçamento GoBanners</title>
 <link rel="icon" type="image/png" href="https://gobanners.com.br/wp-content/uploads/2023/11/Favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap">
 <style>
   :root {
-    --navy: #182B5C;
-    --blue: #1F3C88;
-    --coral: #E53935;
-    --yellow: #FFB100;
+    /* identidade da GoBanners (cores do site gobanners.com.br) */
+    --navy: #0A2B60;
+    --navy-2: #071E43;
+    --blue: #0A2B60;
+    --coral: #ED2B2F;
+    --green: #14A154;
+    --yellow: #F5B400;
     --bg: #FFFFFF;
     --surface: #FFFFFF;
-    --surface-2: #E7F3FF;
-    --line: #D3E2F2;
-    --text: #17171D;
-    --muted: #5C6470;
+    --surface-2: #F0F4F9;
+    --line: #DCE4EE;
+    --text: #010F1C;
+    --muted: #4A6279;
     --bot-bubble: #FFFFFF;
-    --bot-text: #17171D;
-    --user-bubble: #182B5C;
+    --bot-text: #010F1C;
+    --user-bubble: #0A2B60;
     --user-text: #FFFFFF;
     --input-bg: #FFFFFF;
-    --focus: #1F3C88;
-    --wall: #E7F3FF;
-    --wall-dot: #C9DDF1;
-    --shadow: 0 1px 2px rgba(20,26,51,.06), 0 6px 20px rgba(20,26,51,.06);
+    --focus: #0A2B60;
+    --wall: #F0F4F9;
+    --wall-dot: #D9E2EE;
+    --shadow: 0 1px 2px rgba(10,43,96,.06), 0 6px 20px rgba(10,43,96,.07);
     --font-display: "Baloo 2", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     --font-body: "Baloo 2", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   }
@@ -292,11 +295,11 @@
   .choice:hover { background: var(--blue); color: #fff; border-color: var(--blue); }
   .choice:active { transform: scale(.97); }
   .choice:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
-  .choice.quiet { border-color: rgba(31, 60, 136, .35); color: var(--text); background: var(--surface); }
+  .choice.quiet { border-color: rgba(10, 43, 96, .35); color: var(--text); background: var(--surface); }
   .choice.quiet:hover { background: var(--surface-2); color: var(--text); }
   /* "corrigir a resposta anterior": discreto, mas legível (texto escuro, borda azul suave, tamanho menor) */
   .dock .choices { margin-top: 8px; }
-  .dock .choice.quiet { color: var(--text); border-color: rgba(31, 60, 136, .35); font-size: 13.5px; padding: 7px 14px; font-weight: 600; }
+  .dock .choice.quiet { color: var(--text); border-color: rgba(10, 43, 96, .35); font-size: 13.5px; padding: 7px 14px; font-weight: 600; }
   .dock .choice.quiet:hover { border-color: var(--blue); color: var(--blue); }
 
   .cta {
@@ -397,7 +400,22 @@
     border: 2px solid var(--blue); background: var(--blue); color: #fff;
   }
   .btn.ghost { background: transparent; color: var(--blue); }
-  .brand img { border-radius: 50%; }
+  /* ---- GoBanners ---- */
+  .brand { gap: 14px; }
+  .brand img.logo { width: auto; height: 30px; border-radius: 0; }
+  .brand .txt { padding-left: 14px; border-left: 1px solid var(--line); }
+  .stepinfo b { color: var(--coral); }
+  .track .fill { background: var(--coral); }
+  .proof { background: var(--navy); border-bottom: 0; color: #DCE6F5; padding: 9px 12px; }
+  .proof .pill { background: rgba(255,255,255,.10); color: #DCE6F5; }
+  .proof .pill.google { background: #FFFFFF; color: var(--muted); }
+  .proof .pill b { color: #FFFFFF; }
+  .proof .pill.google b { color: var(--text); }
+  .send { background: var(--green); box-shadow: 0 4px 12px rgba(20,161,84,.3); }
+  .hint.err { color: var(--coral); }
+  .avatar { border-color: var(--line); }
+  .choice:hover { background: var(--navy); border-color: var(--navy); }
+  @media (max-width: 520px) { .brand .txt { display: none; } .brand img.logo { height: 26px; } }
   .row.fim { margin-top: 2px; }
   .dock:has(.dock-inner:empty) .dock-inner { display: none; }
 </style>
@@ -408,17 +426,17 @@
   <header class="topbar">
     <div class="topbar-row">
       <div class="brand" aria-label="GoBanners">
-        <img id="tFoto" src="https://gobanners.com.br/wp-content/uploads/2023/11/Favicon.png" alt="">
-        <div><div class="t1">Solicitar orçamento</div><div class="t2">Leva menos de 1 minuto</div></div>
+        <img class="logo" src="https://gobanners.com.br/wp-content/uploads/2024/01/GoBanners-Logotipo-Horizontal.svg" alt="GoBanners">
+        <div class="txt"><div class="t1">Solicitar orçamento</div><div class="t2">Leva menos de 1 minuto</div></div>
       </div>
       <div class="stepinfo" id="stepinfo">Passo <b><span id="stepNow">1</span></b> de <span id="stepTotal">5</span></div>
     </div>
     <div class="track" aria-hidden="true"><div class="fill" id="fill"></div></div>
     <div class="proof" aria-label="Sobre a GoBanners">
-      <span class="pill google"><b>+150 mil</b> clientes atendidos</span>
-      <span class="pill"><b>+12</b> anos de mercado</span>
-      <span class="pill"><b>Fabricação própria</b></span>
-      <span class="pill"><b>Entrega</b> para todo o Brasil</span>
+      <span class="pill google"><span class="stars" aria-hidden="true">★★★★★</span> <b>5.0</b> no <b>Google</b></span>
+      <span class="pill"><b>+2.200</b> avaliações</span>
+      <span class="pill"><b>12</b> anos de mercado</span>
+      <span class="pill"><b>Fábrica própria,</b> envio para todo o Brasil</span>
     </div>
   </header>
 
@@ -426,7 +444,7 @@
 
   <footer class="dock">
     <div class="dock-inner" id="dock"></div>
-    <div class="legal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Sem spam. Seus dados são usados apenas para preparar o seu orçamento.</span></div>
+    <div class="legal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Sem spam. Ao continuar, você concorda com a <a href="https://gobanners.com.br/politica-de-privacidade/" target="_blank" rel="noopener">Política de Privacidade</a>.</span></div>
   </footer>
 </div>
 
@@ -505,7 +523,7 @@
   var V = { id: null, nome: '', whatsapp: WHATS_PADRAO, foto: null, artigo: 'a' }, DISTRIBUICAO = '', EXP = { aberto: true, volta: null };
   var souEu = function () { return V.nome ? 'Eu sou ' + (V.artigo === 'o' ? 'o ' : 'a ') + '<b>' + esc(V.nome) + '</b>, da GoBanners.' : 'Aqui é a equipe da GoBanners.'; };
   var obrigado = function () { return V.nome && V.artigo === 'o' ? 'Obrigado' : 'Obrigada'; };
-  function mostrarVendedor() { $('#tFoto').src = V.foto || LOGO; }
+  function mostrarVendedor() { /* a foto do vendedor aparece nos balões; o cabeçalho leva o logotipo */ }
   var TOTAL = 5;
   function passo(n) { $('#stepNow').textContent = Math.min(n, TOTAL); $('#stepTotal').textContent = TOTAL; $('#fill').style.width = Math.round((n - 1) / TOTAL * 100) + '%'; }
 

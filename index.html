@@ -544,6 +544,7 @@
   }
 
   /* ---------- conversa ---------- */
+  var WA_ICON = '<svg class="wa" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5.1-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.5l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2c0 1.3.9 2.5 1.1 2.7.1.2 1.9 2.9 4.6 4 1.7.7 2.3.8 3.2.7.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3z"/></svg>';
   var ENVIAR = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 20.5 21 12 3 3.5v6.6l11 1.9-11 1.9z"/></svg>';
   function rolar() { chat.scrollTop = chat.scrollHeight; }
   function avatar(vazio) { return '<div class="avatar' + (vazio ? ' espaco' : V.foto ? ' foto' : '') + '">' + (vazio ? '' : '<img src="' + esc(V.foto || LOGO) + '" alt="">') + '</div>'; }
@@ -572,12 +573,19 @@
         chat.appendChild(quick); rolar();
       }
       dock.innerHTML = '';
-      if (!o.texto) return;
+      var porVoltar = function () {
+        if (!o.voltar) return;
+        var v = document.createElement('div'); v.className = 'choices';
+        v.innerHTML = '<button type="button" class="choice quiet">↩ ' + esc(o.voltar) + '</button>';
+        v.querySelector('button').addEventListener('click', function () { fim({ voltar: true }); });
+        dock.appendChild(v);
+      };
+      if (!o.texto) { porVoltar(); return; }
       var f = document.createElement('form'); f.className = 'dock-inner'; f.noValidate = true; f.autocomplete = 'on';
       f.innerHTML = '<label class="label" for="campo">' + esc(o.rotulo || 'Sua resposta') + '</label><div class="field"><div class="inpwrap">' +
-        (o.tipo === 'tel' ? '<span class="prefix"><span class="flag" aria-hidden="true">🇧🇷</span>+55</span>' : '') +
+        (o.tipo === 'tel' ? '<span class="prefix"><span class="flag" aria-hidden="true">🇧🇷</span>+55</span>' + WA_ICON : '') +
         '<input id="campo"></div><button class="send" type="submit" disabled aria-label="Enviar">' + ENVIAR + '</button></div><div class="hint" id="dica"></div>';
-      dock.appendChild(f);
+      dock.appendChild(f); porVoltar();
       campo = f.querySelector('input'); var botao = f.querySelector('.send'), dica = f.querySelector('.hint');
       campo.type = o.tipo || 'text'; campo.inputMode = o.modo || 'text'; campo.setAttribute('autocomplete', o.auto || 'off'); campo.placeholder = o.dica || 'Escreva aqui';
       campo.addEventListener('input', function () { if (o.mascara) campo.value = o.mascara(campo.value); botao.disabled = !campo.value.trim(); dica.textContent = ''; dica.className = 'hint'; });
@@ -604,55 +612,64 @@
     if (L.produto_nome) abertura += ' Vi que você tem interesse em <b>' + esc(L.produto_nome) + '</b>.';
     if (!EXP.aberto) { var volta = EXP.volta || 'no próximo dia útil'; abertura += '<span class="fora-exp">🌙 Agora estamos fora do expediente, mas pode deixar tudo por aqui. <b>' + esc(volta.charAt(0).toUpperCase() + volta.slice(1)) + '</b>, eu continuo com você.</span>'; }
     await bot(abertura, 900);
-    await bot('Para começar, qual é o seu <b>nome e sobrenome</b>?', 600);
-
-    // 1. nome
-    var a = await perguntar({ texto: true, rotulo: 'Nome completo', auto: 'name', dica: 'Seu nome e sobrenome', validar: function (v) { return v.replace(/[^A-Za-zÀ-ÿ]/g, '').length >= 2 ? '' : 'Escreva o seu nome para continuar.'; } });
-    L.nome = /[a-zà-ÿ]/.test(a.valor) && /[A-ZÀ-Ý]/.test(a.valor) ? a.valor.replace(/\s+/g, ' ').trim() : capitalizar(a.valor);
-    gravar(1); passo(2);
-
-    // 2. WhatsApp (aqui o lead passa a contar no rodízio; e se a pessoa já é cliente, volta para quem já a atende)
-    await bot('Prazer, ' + esc(primeiroNome(L.nome)) + '. Qual é o seu <b>WhatsApp com DDD</b>?');
-    a = await perguntar({ texto: true, rotulo: 'WhatsApp com DDD', tipo: 'tel', modo: 'tel', auto: 'tel-national', dica: '(11) 99999-9999', mascara: fmtFone,
-      validar: function (v) { var d = soDigitos(v); return (d.length === 10 || d.length === 11) && d.charAt(0) !== '0' ? '' : 'Confira o número: DDD mais o telefone, por exemplo (11) 99999-9999.'; } });
-    L.whatsapp = soDigitos(a.valor);
-    var rv = await gravar(2, { verificar_conta: true });
-    passo(3);
+    /* Cada passo: n (número no contador), pular (quando não se aplica), voltar (rótulo do botão que traz de volta a ele),
+       pergunta (texto), campo (como responder) e guardar (o que fazer com a resposta). */
     var jaCliente = '';
-    if (rv && rv.ok && rv.trocou && rv.consultora) {
-      V = rv.consultora; DISTRIBUICAO = rv.motivo || DISTRIBUICAO; mostrarVendedor();
-      jaCliente = 'Vi que você já é nosso cliente. ' + (V.artigo === 'o' ? 'O ' : 'A ') + esc(V.nome) + ', que já atende você, continua cuidando do seu pedido. ';
-    }
-
-    // 3. e-mail
-    await bot(jaCliente + 'Qual é o seu <b>e-mail</b>?');
-    a = await perguntar({ texto: true, rotulo: 'E-mail', tipo: 'email', modo: 'email', auto: 'email', dica: 'nome@empresa.com.br',
-      validar: function (v) { return /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(v) ? '' : 'Confira o e-mail, por exemplo nome@empresa.com.br.'; } });
-    L.email = a.valor.toLowerCase();
-    gravar(3); passo(4);
-
-    // 4. empresa
-    await bot('Qual é o nome da sua <b>empresa</b>?');
-    a = await perguntar({ texto: true, rotulo: 'Empresa', auto: 'organization', dica: 'Nome da empresa', opcoes: [{ rotulo: 'Sou pessoa física', valor: '', pula: true, leve: true }] });
-    if (a.pulou) { L.pessoa_fisica = true; L.empresa = ''; } else L.empresa = a.valor.replace(/\s+/g, ' ').trim();
-    gravar(4); passo(5);
-
-    // 5. CNPJ: opcional, e só para quem informou empresa
-    if (!L.pessoa_fisica) {
-      await bot('Qual é o <b>CNPJ</b> da empresa? Se não tiver em mãos agora, pode informar depois.');
-      a = await perguntar({ texto: true, rotulo: 'CNPJ (opcional)', modo: 'numeric', dica: '00.000.000/0000-00', mascara: fmtCnpj,
-        validar: function (v) { return cnpjValido(v) ? '' : 'Confira o CNPJ: são 14 números. Se preferir, toque em "Informar depois".'; },
-        opcoes: [{ rotulo: 'Informar depois', valor: '', pula: true, leve: true }, { rotulo: 'Sou pessoa física', valor: 'pf', pula: true, leve: true }] });
-      if (a.valor === 'pf') { L.pessoa_fisica = true; L.empresa_digitada = L.empresa; L.empresa = ''; }
-      else if (!a.pulou) L.cnpj = soDigitos(a.valor);
-    }
-    gravar(5); passo(6);
-
-    // 5. produto (só quando a pessoa não veio de uma página de produto)
-    if (!L.produto_nome) {
-      await bot('Qual <b>produto</b> você precisa orçar?');
-      a = await perguntar({ texto: false, opcoes: PRODUTOS.map(function (p) { return { rotulo: p.nome, valor: p.id }; }).concat([{ rotulo: 'Outro', valor: 'outro', leve: true }]) });
-      L.produto_id = a.valor; L.produto_nome = a.valor === 'outro' ? 'Outro produto' : a.rotulo; L.produto_deduzido = false;
+    var PASSOS = [
+      { n: 1, voltar: 'Corrigir meu nome',
+        pergunta: function (de) { return de ? 'Sem problema. Qual é o seu <b>nome e sobrenome</b>?' : 'Para começar, qual é o seu <b>nome e sobrenome</b>?'; },
+        campo: function () { return { texto: true, rotulo: 'Nome completo', auto: 'name', dica: 'Seu nome e sobrenome', validar: function (v) { return v.replace(/[^A-Za-zÀ-ÿ]/g, '').length >= 2 ? '' : 'Escreva o seu nome para continuar.'; } }; },
+        guardar: function (a) { L.nome = /[a-zà-ÿ]/.test(a.valor) && /[A-ZÀ-Ý]/.test(a.valor) ? a.valor.replace(/\s+/g, ' ').trim() : capitalizar(a.valor); } },
+      // WhatsApp: aqui o lead passa a contar no rodízio; e se a pessoa já é cliente, volta para quem já a atende
+      { n: 2, voltar: 'Corrigir o WhatsApp',
+        pergunta: function (de) { return (de ? 'Sem problema. ' : 'Prazer, ' + esc(primeiroNome(L.nome)) + '. ') + 'Qual é o seu <b>WhatsApp com DDD</b>?'; },
+        campo: function () { return { texto: true, rotulo: 'WhatsApp com DDD', tipo: 'tel', modo: 'tel', auto: 'tel-national', dica: '(11) 99999-9999', mascara: fmtFone,
+          validar: function (v) { var d = soDigitos(v); return (d.length === 10 || d.length === 11) && d.charAt(0) !== '0' ? '' : 'Confira o número: DDD mais o telefone, por exemplo (11) 99999-9999.'; } }; },
+        guardar: async function (a) {
+          L.whatsapp = soDigitos(a.valor); jaCliente = '';
+          var rv = await gravar(2, { verificar_conta: true });
+          if (rv && rv.ok && rv.trocou && rv.consultora) {
+            V = rv.consultora; DISTRIBUICAO = rv.motivo || DISTRIBUICAO; mostrarVendedor();
+            jaCliente = 'Vi que você já é nosso cliente. ' + (V.artigo === 'o' ? 'O ' : 'A ') + esc(V.nome) + ', que já atende você, continua cuidando do seu pedido. ';
+          }
+          return true;   // já gravou
+        } },
+      { n: 3, voltar: 'Corrigir o e-mail',
+        pergunta: function (de) { var t = (de ? 'Sem problema. ' : jaCliente) + 'Qual é o seu <b>e-mail</b>?'; jaCliente = ''; return t; },
+        campo: function () { return { texto: true, rotulo: 'E-mail', tipo: 'email', modo: 'email', auto: 'email', dica: 'nome@empresa.com.br',
+          validar: function (v) { return /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(v) ? '' : 'Confira o e-mail, por exemplo nome@empresa.com.br.'; } }; },
+        guardar: function (a) { L.email = a.valor.toLowerCase(); } },
+      { n: 4, voltar: 'Corrigir a empresa',
+        pergunta: function (de) { return (de ? 'Sem problema. ' : '') + 'Qual é o nome da sua <b>empresa</b>?'; },
+        campo: function () { return { texto: true, rotulo: 'Empresa', auto: 'organization', dica: 'Nome da empresa', opcoes: [{ rotulo: 'Sou pessoa física', valor: '', pula: true, leve: true }] }; },
+        guardar: function (a) { L.cnpj = ''; L.empresa_digitada = ''; if (a.pulou) { L.pessoa_fisica = true; L.empresa = ''; } else { L.pessoa_fisica = false; L.empresa = a.valor.replace(/\s+/g, ' ').trim(); } } },
+      // CNPJ: opcional, e só para quem informou empresa
+      { n: 5, voltar: 'Corrigir o CNPJ', pular: function () { return L.pessoa_fisica; },
+        pergunta: function (de) { return (de ? 'Sem problema. ' : '') + 'Qual é o <b>CNPJ</b> da empresa? Se não tiver em mãos agora, pode informar depois.'; },
+        campo: function () { return { texto: true, rotulo: 'CNPJ (opcional)', modo: 'numeric', dica: '00.000.000/0000-00', mascara: fmtCnpj,
+          validar: function (v) { return cnpjValido(v) ? '' : 'Confira o CNPJ: são 14 números. Se preferir, toque em "Informar depois".'; },
+          opcoes: [{ rotulo: 'Informar depois', valor: '', pula: true, leve: true }] }; },
+        guardar: function (a) { L.cnpj = a.pulou ? '' : soDigitos(a.valor); } },
+      // produto: só quando a pessoa não veio de uma página de produto
+      { n: 6, pular: function () { return L.produto_deduzido; },
+        pergunta: function () { return 'Qual <b>produto</b> você precisa orçar?'; },
+        campo: function () { return { texto: false, opcoes: PRODUTOS.map(function (p) { return { rotulo: p.nome, valor: p.id }; }).concat([{ rotulo: 'Outro', valor: 'outro', leve: true }]) }; },
+        guardar: function (a) { L.produto_id = a.valor; L.produto_nome = a.valor === 'outro' ? 'Outro produto' : a.rotulo; return true; } }
+    ];
+    var ativos = function () { return PASSOS.filter(function (p) { return !(p.pular && p.pular()); }); };
+    var i = 0, deVolta = false;
+    while (true) {
+      var lista = ativos(); if (i >= lista.length) break;
+      var p = lista[i], anterior = i > 0 ? lista[i - 1] : null;
+      passo(Math.min(p.n, TOTAL));
+      await bot(p.pergunta(deVolta), i === 0 && !deVolta ? 600 : 700);
+      var o = p.campo(); if (anterior && anterior.voltar) o.voltar = anterior.voltar;
+      var a = await perguntar(o);
+      if (a.voltar) { i = lista.indexOf(anterior); deVolta = true; continue; }
+      deVolta = false;
+      var jaGravou = await p.guardar(a);
+      if (!jaGravou) gravar(p.n);
+      i = ativos().indexOf(p) + 1;
     }
 
     // fim: grava completo, cria no Pipedrive e mostra o WhatsApp do vendedor

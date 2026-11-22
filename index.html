@@ -487,6 +487,8 @@
   var soDigitos = function (s) { return String(s || '').replace(/\D/g, ''); };
   var primeiroNome = function (n) { return String(n || '').trim().split(/\s+/)[0] || ''; };
   var capitalizar = function (n) { return String(n || '').trim().replace(/\s+/g, ' ').split(' ').map(function (w, i) { var l = w.toLowerCase(); return i > 0 && /^(da|de|do|das|dos|e)$/.test(l) ? l : l.charAt(0).toUpperCase() + l.slice(1); }).join(' '); };
+  // nome de empresa que vem do cadastro todo em maiúsculas: "RVB BALÕES" vira "RVB Balões" (siglas curtas ficam)
+  var nomeEmpresa = function (n) { n = String(n || '').trim(); return n && n === n.toUpperCase() ? n.split(/\s+/).map(function (w, i) { return i === 0 && w.length <= 4 ? w : (/^(DA|DE|DO|DAS|DOS|E)$/.test(w) ? w.toLowerCase() : w.charAt(0) + w.slice(1).toLowerCase()); }).join(' ') : n; };
   var fmtCnpj = function (v) { var d = soDigitos(v).slice(0, 14); return d.replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1/$2').replace(/(\d{4})(\d)/, '$1-$2'); };
   var cnpjValido = function (v) { var d = soDigitos(v); if (d.length !== 14 || /^(\d)\1+$/.test(d)) return false; var dv = function (n) { var p = n - 7, s = 0; for (var i = 0; i < n; i++) { s += +d.charAt(i) * p--; if (p < 2) p = 9; } var r = s % 11; return r < 2 ? 0 : 11 - r; }; return dv(12) === +d.charAt(12) && dv(13) === +d.charAt(13); };
   var fmtFone = function (d) { d = soDigitos(d).slice(0, 11); if (d.length <= 2) return d; if (d.length <= 6) return '(' + d.slice(0, 2) + ') ' + d.slice(2); if (d.length <= 10) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6); return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7); };
@@ -629,6 +631,7 @@
           L.whatsapp = soDigitos(a.valor);
           var rv = await gravar(2, { verificar_conta: true });
           CONHECIDO = rv && rv.ok && rv.conhecido ? rv.conhecido : null; outraEmpresa = false;
+          if (CONHECIDO && CONHECIDO.empresa) CONHECIDO.empresa = nomeEmpresa(CONHECIDO.empresa);
           if (rv && rv.ok && rv.trocou && rv.consultora) {
             // quem abriu o chat avisa, e o vendedor que já atende a pessoa assume a conversa
             var quemAbriu = V.nome, novo = rv.consultora, oa = novo.artigo === 'o' ? 'o' : 'a';
@@ -699,7 +702,7 @@
     var texto = 'Oi' + (V.nome ? ', ' + V.nome : '') + '! Sou ' + L.nome + (L.empresa ? ', da empresa ' + L.empresa : '') + '. Acabei de pedir um orçamento' + (L.produto_nome && L.produto_id !== 'outro' ? ' de ' + L.produto_nome : '') + ' pelo site.';
     var fimRow = document.createElement('div'); fimRow.className = 'row bot quick fim';
     fimRow.innerHTML = avatar(true) + '<a class="cta" target="_blank" rel="noopener" href="https://wa.me/' + soDigitos(V.whatsapp || WHATS_PADRAO) + '?text=' + encodeURIComponent(texto) + '">' +
-      '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>Chamar no WhatsApp</a>';
+      WA_ICON.replace(' class="wa"', '') + 'Chamar no WhatsApp</a>';
     chat.appendChild(fimRow); rolar();
     $('#stepinfo').hidden = true; $('#fill').style.width = '100%';
     try { if (window.parent !== window) window.parent.postMessage({ gobanners: 'lead', produto: L.produto_nome || '' }, '*'); } catch (e) { /* fora de iframe */ }

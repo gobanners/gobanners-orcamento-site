@@ -1,16 +1,273 @@
 <!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex,nofollow"><title>Orçamento GoBanners</title>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#182B5C">
+<title>Orçamento GoBanners</title>
+<link rel="icon" type="image/png" href="https://gobanners.com.br/wp-content/uploads/2023/11/Favicon.png">
 <style>
-:root{--azul:#0b5fb3;--texto:#1b2340}
-body{margin:0;min-height:100vh;display:grid;place-items:center;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f4f7fb;color:var(--texto)}
-.c{text-align:center;padding:32px;max-width:520px}
-h1{font-size:28px;margin:0 0 8px;color:var(--azul)}p{margin:0 0 20px;line-height:1.5;color:#4b5570}
-a.b{display:inline-block;background:#25d366;color:#fff;text-decoration:none;padding:12px 20px;border-radius:999px;font-weight:600}
-</style></head><body>
-<div class="c">
-  <h1>GoBanners</h1>
-  <p>O atendimento inteligente de orçamento está chegando. Enquanto isso, fale com a gente pelo WhatsApp.</p>
-  <a class="b" href="https://gobanners.com.br/whats-viviane" rel="noopener">Pedir orçamento no WhatsApp</a>
+  :root { --navy:#182B5C; --blue:#1F3C88; --red:#E53935; --bg:#EEF2F8; --line:#D6DEEA; --text:#17171D; --muted:#5C6470; --green:#25D366; }
+  * { box-sizing:border-box; }
+  html, body { height:100%; margin:0; }
+  body { font:16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color:var(--text); background:var(--bg); }
+  .app { height:100%; height:100dvh; max-width:560px; margin:0 auto; display:flex; flex-direction:column; background:#fff; }
+  @media (min-width:600px) { body { padding:16px 0; } .app { height:calc(100dvh - 32px); border-radius:18px; overflow:hidden; box-shadow:0 20px 50px rgba(24,43,92,.18); } }
+  .topo { background:var(--navy); color:#fff; padding:12px 16px; display:flex; align-items:center; gap:12px; }
+  .topo img { width:44px; height:44px; border-radius:50%; object-fit:cover; background:#fff; flex:none; }
+  .topo .n { font-weight:700; font-size:17px; line-height:1.2; }
+  .topo .s { font-size:13px; opacity:.85; }
+  .topo .s::before { content:""; display:inline-block; width:8px; height:8px; border-radius:50%; background:#5EE08A; margin-right:6px; }
+  .topo .s.fora::before { background:#FFC857; }
+  .msgs { flex:1; overflow-y:auto; padding:16px 14px 8px; background:var(--bg); scroll-behavior:smooth; }
+  .linha { display:flex; gap:8px; margin-bottom:10px; align-items:flex-end; }
+  .linha.eu { justify-content:flex-end; }
+  .linha img { width:30px; height:30px; border-radius:50%; object-fit:cover; background:#fff; flex:none; }
+  .balao { max-width:82%; padding:10px 14px; border-radius:18px; background:#fff; border:1px solid var(--line); border-bottom-left-radius:6px; white-space:pre-wrap; overflow-wrap:anywhere; }
+  .eu .balao { background:var(--navy); color:#fff; border-color:var(--navy); border-radius:18px; border-bottom-right-radius:6px; }
+  .digitando span { display:inline-block; width:7px; height:7px; margin:0 2px; border-radius:50%; background:#9AA6BA; animation:pula 1s infinite; }
+  .digitando span:nth-child(2) { animation-delay:.15s; } .digitando span:nth-child(3) { animation-delay:.3s; }
+  @keyframes pula { 0%,60%,100% { transform:none; opacity:.5; } 30% { transform:translateY(-4px); opacity:1; } }
+  .opcoes { display:flex; flex-wrap:wrap; gap:8px; margin:2px 0 12px 38px; }
+  .opcoes button { font:inherit; font-weight:600; color:var(--navy); background:#fff; border:1.5px solid var(--navy); border-radius:999px; padding:8px 14px; cursor:pointer; }
+  .opcoes button:hover, .opcoes button:focus-visible { background:var(--navy); color:#fff; outline:none; }
+  .opcoes button.leve { border-color:var(--line); color:var(--muted); font-weight:500; }
+  .wa { display:inline-flex; align-items:center; gap:10px; margin:2px 0 14px 38px; background:var(--green); color:#fff; text-decoration:none; font-weight:700; padding:12px 20px; border-radius:999px; box-shadow:0 8px 20px rgba(37,211,102,.35); }
+  .wa svg { width:22px; height:22px; }
+  .barra { border-top:1px solid var(--line); padding:10px 12px calc(10px + env(safe-area-inset-bottom)); display:flex; gap:8px; background:#fff; }
+  .barra input { flex:1; min-width:0; font:inherit; padding:12px 14px; border:1.5px solid var(--line); border-radius:999px; outline:none; }
+  .barra input:focus { border-color:var(--blue); }
+  .barra button { flex:none; width:46px; height:46px; border-radius:50%; border:0; background:var(--navy); color:#fff; cursor:pointer; display:grid; place-items:center; }
+  .barra button:disabled, .barra input:disabled { opacity:.45; cursor:default; }
+  .erro { color:#B42318; font-size:13px; margin:-4px 0 8px 38px; }
+  .rodape { text-align:center; font-size:11.5px; color:var(--muted); padding:0 12px 8px; background:#fff; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topo">
+    <img id="tFoto" src="https://gobanners.com.br/wp-content/uploads/2023/11/Favicon.png" alt="">
+    <div><div class="n" id="tNome">GoBanners</div><div class="s" id="tStatus">Online agora</div></div>
+  </div>
+  <div class="msgs" id="msgs" aria-live="polite"></div>
+  <form class="barra" id="barra" autocomplete="on">
+    <input id="campo" type="text" placeholder="Escreva aqui" disabled aria-label="Sua resposta">
+    <button id="enviar" type="submit" disabled aria-label="Enviar"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M3 20.5 21 12 3 3.5v6.6l11 1.9-11 1.9z"/></svg></button>
+  </form>
+  <div class="rodape">Seus dados são usados apenas para preparar o seu orçamento.</div>
 </div>
-</body></html>
+
+<script>
+/* =====================================================================
+   GoBanners · Chat de orçamento
+   Roteiro inicial (22/11/2026): o mesmo do formulário que o site usava, para colocar o chat no ar.
+   As perguntas são revistas com a equipe e trocadas aqui, na lista PASSOS.
+   Regras fixas:
+   · quem aparece (nome e foto) é o vendedor da vez no rodízio, do começo ao fim; não existe anfitrião;
+   · a única troca é a do cliente que já está na base com outro vendedor;
+   · cada resposta é gravada na hora (quem abandona aparece no painel com o passo em que parou);
+   · fora do expediente o chat avisa, já na abertura, quando a equipe retorna.
+   Texto para o cliente: tom profissional, abertura com "Oi", uma pergunta por mensagem, sem "a gente".
+   ===================================================================== */
+(function () {
+  'use strict';
+  var FUNCS = 'https://shwjsxqfrogieqojarxr.supabase.co/functions/v1';
+  var LOGO = 'https://gobanners.com.br/wp-content/uploads/2023/11/Favicon.png';
+  var WHATS_PADRAO = '5511986860210';
+
+  // produtos do site. "re" reconhece o produto pelo endereço da página em que a pessoa estava
+  var PRODUTOS = [
+    { id: 'wind-banner', nome: 'Wind Banner', re: /wind|flag/ },
+    { id: 'banner-roll-up', nome: 'Banner Roll-Up', re: /roll/ },
+    { id: 'cavalete', nome: 'Cavalete', re: /cavalete/ },
+    { id: 'boneco-interativo', nome: 'Boneco Interativo', re: /boneco/ },
+    { id: 'banner-tripe', nome: 'Banner Tripé', re: /trip/ },
+    { id: 'mochila-pirulito', nome: 'Mochila Pirulito', re: /mochila|pirulito/ },
+    { id: 'backdrop', nome: 'Backdrop', re: /backdrop/ },
+    { id: 'biruta', nome: 'Biruta', re: /biruta/ },
+    { id: 'capa-para-gradil', nome: 'Capa para Gradil', re: /gradil/ }
+  ];
+
+  var $ = function (s) { return document.querySelector(s); };
+  var msgs = $('#msgs'), campo = $('#campo'), botao = $('#enviar');
+  var qs = new URLSearchParams(location.search);
+  var espera = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+  var soDigitos = function (s) { return String(s || '').replace(/\D/g, ''); };
+  var primeiroNome = function (n) { return String(n || '').trim().split(/\s+/)[0] || ''; };
+  var capitalizar = function (n) { return String(n || '').trim().replace(/\s+/g, ' ').split(' ').map(function (w, i) { var l = w.toLowerCase(); return i > 0 && /^(da|de|do|das|dos|e)$/.test(l) ? l : l.charAt(0).toUpperCase() + l.slice(1); }).join(' '); };
+  var fmtFone = function (d) { d = soDigitos(d).slice(0, 11); if (d.length <= 2) return d; if (d.length <= 6) return '(' + d.slice(0, 2) + ') ' + d.slice(2); if (d.length <= 10) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6); return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7); };
+
+  /* ---------- de onde a pessoa veio ---------- */
+  var utms = {};
+  qs.forEach(function (v, k) { if (k.indexOf('utm_') === 0 || /^(ref|landing|gclid|gbraid|wbraid|fbclid)$/.test(k)) utms[k] = v; });
+  var origemPagina = qs.get('origem') || '';
+  var origemUrl = '';
+  try {
+    var r = document.referrer ? new URL(document.referrer) : null;
+    if (r && /(^|\.)gobanners\.com\.br$/.test(r.hostname) && r.hostname.indexOf('atendimento.') !== 0) {   // veio de uma página do site
+      origemUrl = r.origin + r.pathname; if (!origemPagina) origemPagina = r.pathname;
+    } else if (r && r.hostname && r.hostname !== location.hostname && !utms.utm_source && !utms.ref) utms.ref = r.hostname.replace(/^www\./, '');
+  } catch (e) { /* sem referrer */ }
+  if (!origemPagina) origemPagina = '/';
+  if (!origemUrl && origemPagina !== '/') origemUrl = 'https://gobanners.com.br' + (origemPagina.charAt(0) === '/' ? '' : '/') + origemPagina;
+
+  /* ---------- o lead ---------- */
+  var L = {
+    session_id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 's' + Date.now() + Math.random().toString(36).slice(2, 10),
+    nome: '', whatsapp: '', ddi: '55', email: '', empresa: '', pessoa_fisica: false,
+    produto_id: qs.get('produto_id') || '', produto_nome: qs.get('produto_nome') || '', produto_deduzido: false,
+    origem_url: origemUrl || null, origem_pagina: origemPagina, utms: utms
+  };
+  if (L.produto_nome || L.produto_id) {
+    var achado = PRODUTOS.filter(function (p) { return p.id === L.produto_id; })[0];
+    if (!L.produto_nome && achado) L.produto_nome = achado.nome;
+    L.produto_deduzido = true;
+  } else {
+    var pelaPagina = PRODUTOS.filter(function (p) { return origemPagina !== '/' && p.re.test(origemPagina.toLowerCase()); })[0];
+    if (pelaPagina) { L.produto_id = pelaPagina.id; L.produto_nome = pelaPagina.nome; L.produto_deduzido = true; }
+  }
+
+  /* ---------- vendedor e expediente ---------- */
+  var V = { id: null, nome: '', whatsapp: WHATS_PADRAO, foto: null, artigo: 'a' }, DISTRIBUICAO = '', EXP = { aberto: true, volta: null };
+  var souEu = function () { return V.nome ? 'Aqui é ' + (V.artigo === 'o' ? 'o ' : 'a ') + V.nome + ', da GoBanners.' : 'Aqui é a equipe da GoBanners.'; };
+  var obrigado = function () { return V.nome && V.artigo === 'o' ? 'Obrigado' : 'Obrigada'; };
+  function mostrarVendedor() {
+    $('#tNome').textContent = V.nome ? V.nome + ' · GoBanners' : 'GoBanners';
+    $('#tFoto').src = V.foto || LOGO;
+    var s = $('#tStatus'); s.classList.toggle('fora', !EXP.aberto);
+    s.textContent = EXP.aberto ? 'Online agora' : 'Retorno ' + (EXP.volta || 'no próximo dia útil');
+  }
+
+  /* ---------- servidor ---------- */
+  function api(nome, corpo, limite) {
+    var ctrl = new AbortController(); var t = setTimeout(function () { ctrl.abort(); }, limite || 12000);
+    return fetch(FUNCS + '/' + nome, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo), signal: ctrl.signal })
+      .then(function (r) { return r.json(); }).catch(function (e) { return { ok: false, erro: String(e) }; }).finally(function () { clearTimeout(t); });
+  }
+  function gravar(passo, extra) {
+    var corpo = { session_id: L.session_id, passo: passo, nome: L.nome || undefined, whatsapp: L.whatsapp || undefined, ddi: L.ddi, email: L.email || undefined,
+      empresa: L.empresa || undefined, pessoa_fisica: L.pessoa_fisica, produto_id: L.produto_id || undefined, produto_nome: L.produto_nome || undefined,
+      origem_url: L.origem_url, origem_pagina: L.origem_pagina, utms: L.utms, consultora_id: V.id || undefined, distribuicao: DISTRIBUICAO || undefined };
+    if (extra) for (var k in extra) corpo[k] = extra[k];
+    return api('salvar-passo', corpo);
+  }
+
+  /* ---------- conversa ---------- */
+  function rolar() { msgs.scrollTop = msgs.scrollHeight; }
+  function balao(html, eu) {
+    var d = document.createElement('div'); d.className = 'linha' + (eu ? ' eu' : '');
+    d.innerHTML = (eu ? '' : '<img src="' + esc(V.foto || LOGO) + '" alt="">') + '<div class="balao">' + html + '</div>';
+    msgs.appendChild(d); rolar(); return d;
+  }
+  function bot(html, ms) {
+    var d = balao('<span class="digitando"><span></span><span></span><span></span></span>');
+    return espera(ms == null ? 700 : ms).then(function () { d.querySelector('.balao').innerHTML = html; rolar(); });
+  }
+  function eu(texto) { balao(esc(texto), true); }
+  /** Espera a resposta: texto digitado (validado) ou um dos botões. Devolve { valor, rotulo, pulou }. */
+  function perguntar(o) {
+    return new Promise(function (resolver) {
+      var aberto = true;
+      campo.disabled = botao.disabled = !o.texto;
+      campo.value = ''; campo.type = o.tipo || 'text'; campo.inputMode = o.modo || 'text';
+      campo.setAttribute('autocomplete', o.auto || 'off'); campo.placeholder = o.texto ? (o.dica || 'Escreva aqui') : 'Escolha uma opção acima';
+      campo.oninput = o.mascara ? function () { campo.value = o.mascara(campo.value); } : null;
+      var fim = function (r) { if (!aberto) return; aberto = false; campo.disabled = botao.disabled = true; campo.oninput = null; $('#barra').onsubmit = null; msgs.querySelectorAll('.opcoes, .erro').forEach(function (e) { e.remove(); }); resolver(r); };
+      if (o.opcoes && o.opcoes.length) {
+        var box = document.createElement('div'); box.className = 'opcoes';
+        o.opcoes.forEach(function (op) {
+          var b = document.createElement('button'); b.type = 'button'; b.textContent = op.rotulo; if (op.leve) b.className = 'leve';
+          b.addEventListener('click', function () { eu(op.rotulo); fim({ valor: op.valor, rotulo: op.rotulo, pulou: !!op.pula }); });
+          box.appendChild(b);
+        });
+        msgs.appendChild(box); rolar();
+      }
+      $('#barra').onsubmit = function (ev) {
+        ev.preventDefault(); if (!o.texto) return;
+        var v = campo.value.trim(); var falha = o.validar ? o.validar(v) : (v ? '' : 'Escreva a resposta para continuar.');
+        if (falha) { msgs.querySelectorAll('.erro').forEach(function (e) { e.remove(); }); var e = document.createElement('div'); e.className = 'erro'; e.textContent = falha; msgs.appendChild(e); rolar(); return; }
+        eu(v); fim({ valor: v, rotulo: v });
+      };
+      if (o.texto && window.matchMedia('(min-width:600px)').matches) campo.focus();
+    });
+  }
+
+  /* ---------- roteiro ---------- */
+  async function conversa() {
+    // abertura: o rodízio define o vendedor antes da primeira mensagem
+    var forcar = (location.hash.match(/consultora=([a-z0-9_-]+)/) || [])[1];
+    var r0 = await api('salvar-passo', { distribuir: true, forcar: forcar || undefined }, 8000);
+    if (r0 && r0.ok && r0.consultora) { V = r0.consultora; DISTRIBUICAO = r0.motivo || ''; if (r0.expediente) EXP = r0.expediente; }
+    mostrarVendedor();
+
+    var abertura = 'Oi! ' + souEu() + ' ';
+    if (!EXP.aberto) abertura += 'Nosso atendimento retorna ' + (EXP.volta || 'no próximo dia útil') + ', e o seu pedido já fica registrado comigo. ';
+    if (L.produto_nome) abertura += 'Vi que você tem interesse em <b>' + esc(L.produto_nome) + '</b>. ';
+    abertura += 'Para preparar o seu orçamento, qual é o seu <b>nome e sobrenome</b>?';
+    await bot(abertura, 900);
+
+    // 1. nome
+    var a = await perguntar({ texto: true, auto: 'name', dica: 'Nome e sobrenome', validar: function (v) { return v.replace(/[^A-Za-zÀ-ÿ]/g, '').length >= 2 ? '' : 'Escreva o seu nome para continuar.'; } });
+    L.nome = /[a-zà-ÿ]/.test(a.valor) && /[A-ZÀ-Ý]/.test(a.valor) ? a.valor.replace(/\s+/g, ' ').trim() : capitalizar(a.valor);
+    gravar(1);
+
+    // 2. WhatsApp (aqui o lead passa a contar no rodízio; e se a pessoa já é cliente, volta para quem já a atende)
+    await bot('Prazer, ' + esc(primeiroNome(L.nome)) + '. Qual é o seu <b>WhatsApp com DDD</b>?');
+    a = await perguntar({ texto: true, tipo: 'tel', modo: 'tel', auto: 'tel-national', dica: '(11) 99999-9999', mascara: fmtFone,
+      validar: function (v) { var d = soDigitos(v); return (d.length === 10 || d.length === 11) && d.charAt(0) !== '0' ? '' : 'Confira o número: DDD mais o telefone, por exemplo (11) 99999-9999.'; } });
+    L.whatsapp = soDigitos(a.valor);
+    var rv = await gravar(2, { verificar_conta: true });
+    var jaCliente = '';
+    if (rv && rv.ok && rv.trocou && rv.consultora) {
+      V = rv.consultora; DISTRIBUICAO = rv.motivo || DISTRIBUICAO; mostrarVendedor();
+      jaCliente = 'Vi que você já é nosso cliente. ' + (V.artigo === 'o' ? 'O ' : 'A ') + esc(V.nome) + ', que já atende você, continua cuidando do seu pedido. ';
+    }
+
+    // 3. e-mail
+    await bot(jaCliente + 'Qual é o seu <b>e-mail</b>?');
+    a = await perguntar({ texto: true, tipo: 'email', modo: 'email', auto: 'email', dica: 'nome@empresa.com.br',
+      validar: function (v) { return /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(v) ? '' : 'Confira o e-mail, por exemplo nome@empresa.com.br.'; },
+      opcoes: [{ rotulo: 'Prefiro não informar', valor: '', pula: true, leve: true }] });
+    L.email = a.pulou ? '' : a.valor.toLowerCase();
+    gravar(3);
+
+    // 4. empresa
+    await bot('Qual é o nome da sua <b>empresa</b>?');
+    a = await perguntar({ texto: true, auto: 'organization', dica: 'Nome da empresa', opcoes: [{ rotulo: 'Sou pessoa física', valor: '', pula: true, leve: true }] });
+    if (a.pulou) { L.pessoa_fisica = true; L.empresa = ''; } else L.empresa = a.valor.replace(/\s+/g, ' ').trim();
+    gravar(4);
+
+    // 5. produto (só quando a pessoa não veio de uma página de produto)
+    if (!L.produto_nome) {
+      await bot('Qual <b>produto</b> você precisa orçar?');
+      a = await perguntar({ texto: false, opcoes: PRODUTOS.map(function (p) { return { rotulo: p.nome, valor: p.id }; }).concat([{ rotulo: 'Outro', valor: 'outro', leve: true }]) });
+      L.produto_id = a.valor; L.produto_nome = a.valor === 'outro' ? 'Outro produto' : a.rotulo; L.produto_deduzido = false;
+    }
+
+    // fim: grava completo, cria no Pipedrive e mostra o WhatsApp do vendedor
+    var espe = balao('<span class="digitando"><span></span><span></span><span></span></span>');
+    var rf = await api('finalizar-lead', { session_id: L.session_id, nome: L.nome, whatsapp: L.whatsapp, ddi: L.ddi, email: L.email || null, empresa: L.empresa || '',
+      pessoa_fisica: L.pessoa_fisica, produto_id: L.produto_id || null, produto_nome: L.produto_nome || null, produto_deduzido: L.produto_deduzido,
+      origem_url: L.origem_url, origem_pagina: L.origem_pagina, utms: L.utms }, 20000);
+    if (rf && rf.consultora) { V = Object.assign({}, V, rf.consultora); if (rf.expediente) EXP = rf.expediente; mostrarVendedor(); }
+    var pedido = L.produto_nome && L.produto_id !== 'outro' ? ' de ' + esc(L.produto_nome) : '';
+    espe.querySelector('.balao').innerHTML = obrigado() + ', ' + esc(primeiroNome(L.nome)) + '. Recebi o seu pedido de orçamento' + pedido + ' e vou falar com você pelo WhatsApp ' +
+      (EXP.aberto ? 'em instantes' : (EXP.volta || 'no próximo dia útil')) + '. Se preferir, pode me chamar pelo botão abaixo.';
+    var texto = 'Oi' + (V.nome ? ', ' + V.nome : '') + '! Sou ' + L.nome + (L.empresa ? ', da empresa ' + L.empresa : '') + '. Acabei de pedir um orçamento' + (L.produto_nome && L.produto_id !== 'outro' ? ' de ' + L.produto_nome : '') + ' pelo site.';
+    var link = document.createElement('a'); link.className = 'wa'; link.target = '_blank'; link.rel = 'noopener';
+    link.href = 'https://wa.me/' + soDigitos(V.whatsapp || WHATS_PADRAO) + '?text=' + encodeURIComponent(texto);
+    link.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>Chamar no WhatsApp';
+    msgs.appendChild(link); rolar();
+    campo.placeholder = 'Pedido enviado';
+    try { if (window.parent !== window) window.parent.postMessage({ gobanners: 'lead', produto: L.produto_nome || '' }, '*'); } catch (e) { /* fora de iframe */ }
+  }
+  conversa().catch(function (e) {
+    console.error(e);
+    balao('Tivemos uma falha ao carregar o atendimento. Você pode falar com a nossa equipe pelo WhatsApp: <a href="https://wa.me/' + WHATS_PADRAO + '" target="_blank" rel="noopener">abrir conversa</a>.');
+  });
+})();
+</script>
+</body>
+</html>

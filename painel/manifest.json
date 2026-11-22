@@ -1,0 +1,21 @@
+{
+  "name": "Painel GoBanners",
+  "short_name": "GoBanners",
+  "description": "Leads do chat de orçamento da GoBanners, com avisos no celular.",
+  "lang": "pt-BR",
+  "id": "./",
+  "start_url": "./#leads",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F4F7FB",
+  "theme_color": "#182B5C",
+  "icons": [
+    {
+      "src": "https://gobanners.com.br/wp-content/uploads/2023/11/Favicon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

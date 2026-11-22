@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Painel GoBanners</title>
+<link rel="icon" type="image/png" href="https://gobanners.com.br/wp-content/uploads/2023/11/Favicon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#182B5C">
+<link rel="apple-touch-icon" href="https://gobanners.com.br/wp-content/uploads/2023/11/Favicon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Painel GoBanners">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap">
+<style>
+  :root {
+    --navy:#182B5C; --blue:#1F3C88; --coral:#E53935; --yellow:#FFB100; --green:#1E9E5A;
+    --bg:#F4F7FB; --surface:#fff; --line:#D3E2F2; --text:#17171D; --muted:#5C6470; --soft:#E7F3FF;
+    --font:"Baloo 2", -apple-system, "Segoe UI", Arial, sans-serif;
+    color-scheme: light;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:var(--font); font-size:15px; line-height:1.4; }
+  a { color:var(--blue); }
+  button, input, select { font:inherit; }
+  .top { background:var(--surface); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:5; }
+  .top-in { max-width:1280px; margin:0 auto; padding:10px 16px; display:flex; align-items:center; gap:14px; }
+  .top img { height:40px; background:var(--navy); padding:7px 12px; border-radius:10px; box-sizing:border-box; }
+  .top .t { font-weight:800; font-size:18px; }
+  .top .sp { flex:1; }
+  .tabs { display:flex; gap:4px; }
+  .tab { border:0; background:transparent; padding:8px 12px; border-radius:999px; font-weight:700; color:var(--muted); cursor:pointer; }
+  .tab.on { background:var(--soft); color:var(--blue); }
+  .who { font-size:13px; color:var(--muted); }
+  .sair { border:1px solid var(--line); background:#fff; border-radius:999px; padding:6px 12px; cursor:pointer; font-size:13px; }
+  main { max-width:1280px; margin:0 auto; padding:16px; }
+  .painel { display:none; } .painel.on { display:block; }
+  .filtros { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:12px; }
+  .filtros select, .filtros input { border:1px solid var(--line); border-radius:10px; padding:8px 10px; background:#fff; }
+  .filtros input[type=search] { min-width:240px; }
+  .btn { border:1px solid var(--line); background:#fff; border-radius:999px; padding:8px 14px; cursor:pointer; font-weight:600; }
+  .btn.primario { background:var(--blue); color:#fff; border-color:var(--blue); }
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px 16px; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit, minmax(170px,1fr)); gap:10px; margin-bottom:14px; }
+  .kpi .n { font-size:30px; font-weight:800; line-height:1.1; }
+  .kpi .l { font-size:13px; color:var(--muted); }
+  table { width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+  th, td { text-align:left; padding:9px 10px; border-bottom:1px solid var(--line); vertical-align:top; font-size:14px; }
+  th { background:var(--soft); font-size:12.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); }
+  tr:hover td { background:#FAFCFF; }
+  tr.linha { cursor:pointer; }
+  .tag { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; font-weight:700; background:var(--soft); color:var(--blue); white-space:nowrap; }
+  .tag.ok { background:#E3F6EA; color:#146C3B; } .tag.parcial { background:#FFF3D6; color:#7A5200; } .tag.resg { background:#FCE4EA; color:#9B0026; } .tag.cont { background:#EEE; color:#444; } .tag.rep { background:#EAE6FF; color:#4B3A9E; } .aviso { color:#B25B00; font-size:11px; display:block; }
+  .muted { color:var(--muted); } .small { font-size:12.5px; }
+  .badge { background:#c33; color:#fff; border-radius:999px; font-size:11px; padding:1px 6px; margin-left:4px; vertical-align:middle; }
+  .chat { display:grid; grid-template-columns:340px 1fr; gap:12px; height:calc(100vh - 110px); min-height:420px; }
+  .chat .lista { background:#fff; border:1px solid var(--line); border-radius:14px; overflow:auto; }
+  .conv { padding:10px 12px; border-bottom:1px solid var(--line); cursor:pointer; display:grid; grid-template-columns:1fr auto; gap:2px 8px; }
+  .conv:hover, .conv.on { background:#F3F7FF; }
+  .dia-sep { align-self:center; margin:8px auto; padding:3px 12px; border-radius:999px; background:#e7e3da; color:#5b5646; font-size:12px; font-weight:600; text-transform:capitalize; }
+  .conv .n { font-weight:700; } .conv .p { color:var(--muted); font-size:12.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; grid-column:1/3; }
+  .conv .h { font-size:11.5px; color:var(--muted); text-align:right; }
+  .conv.nl .n::before { content:"● "; color:#c33; }
+  .chat .thread { background:#fff; border:1px solid var(--line); border-radius:14px; display:flex; flex-direction:column; min-width:0; }
+  .thead { display:flex; align-items:center; gap:10px; padding:10px 12px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  .thead .voltar { display:none; padding:4px 10px; }
+  .thead .modo { margin-left:auto; display:flex; gap:6px; align-items:center; font-size:12.5px; }
+  .thead .modo button { border:1px solid var(--line); background:#fff; border-radius:999px; padding:4px 10px; cursor:pointer; font-size:12.5px; }
+  .thead .modo button.on { background:var(--blue); color:#fff; border-color:var(--blue); }
+  .msgs { flex:1; overflow:auto; padding:14px; background:#EFE7DD; display:flex; flex-direction:column; gap:6px; }
+  /* botão flutuante "ir para a última mensagem" (Luis, 20/11/2026) */
+  .chat .thread { position:relative; }
+  .irfim { position:absolute; right:16px; width:40px; height:40px; border-radius:50%; border:1px solid var(--line); background:#fff; color:var(--navy); font-size:20px; line-height:38px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,.18); cursor:pointer; z-index:4; padding:0; }
+  .irfim[hidden] { display:none; }
+  .m { max-width:78%; padding:7px 10px; border-radius:10px; font-size:14px; white-space:pre-wrap; word-break:break-word; box-shadow:0 1px 0 rgba(0,0,0,.06); }
+  .m.in { background:#fff; align-self:flex-start; } .m.out { background:#D9FDD3; align-self:flex-end; } .m.sis { background:#FFF3D6; align-self:center; font-size:12px; color:#7A5200; }
+  .m .q { font-size:11px; color:var(--muted); margin-bottom:2px; } .m .h { font-size:10.5px; color:var(--muted); text-align:right; margin-top:2px; }
+  .compor { display:flex; gap:8px; padding:10px; border-top:1px solid var(--line); } .compor[hidden] { display:none; }
+  .nova { padding:8px 10px; border-bottom:1px solid var(--line); background:#fff; display:flex; gap:6px; flex-wrap:wrap; align-items:center; } .nova input { border:1px solid var(--line); border-radius:8px; padding:6px 8px; font:inherit; font-size:13px; } .nova[hidden] { display:none; }
+  .coach { border-top:1px solid var(--line); background:#FFFBEF; max-height:45%; display:flex; flex-direction:column; } .coach[hidden] { display:none; }
+  .coach-bar { display:flex; gap:6px; align-items:center; padding:8px 10px; flex-wrap:wrap; }
+  .coach-bar input { flex:1; min-width:160px; border:1px solid var(--line); border-radius:8px; padding:6px 8px; font:inherit; font-size:13px; }
+  .coach-bar .btn { padding:5px 10px; font-size:12.5px; }
+  .coach-out { overflow:auto; padding:6px 12px 10px; font-size:13px; }
+  .coach-out h4 { margin:8px 0 2px; font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }
+  .coach-out ul { margin:0; padding-left:18px; } .coach-out .msg { background:#fff; border:1px solid var(--line); border-radius:8px; padding:8px; white-space:pre-wrap; }
+  .ferr { display:flex; gap:6px; align-items:center; flex-wrap:wrap; padding:8px 10px; border-top:1px solid var(--line); background:#fff; }
+  .ferr[hidden] { display:none; } .ferr .modo { margin-left:auto; display:flex; gap:6px; align-items:center; font-size:12.5px; }
+  .ferr .modo button { border:1px solid var(--line); background:#fff; border-radius:999px; padding:4px 10px; cursor:pointer; font-size:12.5px; } .ferr .modo button.on { background:var(--blue); color:#fff; border-color:var(--blue); }
+  .ferr .btn { padding:5px 10px; font-size:12.5px; }
+  .compor textarea { flex:1; border:1px solid var(--line); border-radius:10px; padding:8px 10px; font:inherit; resize:vertical; }
+  .dados { font-size:12.5px; color:#333; padding:8px 12px; border-top:1px solid var(--line); background:#FAFCFF; max-height:30%; overflow:auto; } .dados[hidden] { display:none; } .dados b { color:var(--muted); font-weight:600; }
+  @media (max-width:760px) {
+    /* celular (Luis, 20/11/2026): o menu fica sempre preso no alto e só as mensagens rolam */
+    .top { position:fixed; top:0; left:0; right:0; }
+    body { padding-top:var(--topH, 120px); }
+    main { padding:8px; }
+    .top .t { display:none; }
+    .tabs { overflow-x:auto; flex-wrap:nowrap; }
+    .chat { height:calc(100dvh - var(--topH, 120px) - 16px); min-height:0; grid-template-rows:minmax(0,1fr); }
+    .chat .thread, .chat .lista { min-height:0; }
+    .msgs { min-height:0; }
+  }
+  @media (max-width:760px) { .chat { grid-template-columns:1fr; } .chat .lista { display:block; } .chat .thread { display:none; } .chat.aberta .lista { display:none; } .chat.aberta .thread { display:flex; } }
+  .drawer { position:fixed; inset:0; background:rgba(20,26,51,.45); display:none; z-index:20; }
+  .drawer.on { display:block; }
+  .drawer .box { position:absolute; right:0; top:0; bottom:0; width:min(560px,100%); background:#fff; overflow:auto; padding:20px; }
+  .drawer h2 { margin:0 0 6px; font-size:20px; }
+  .drawer .x { position:absolute; top:12px; right:12px; border:0; background:var(--soft); width:34px; height:34px; border-radius:50%; cursor:pointer; font-size:18px; }
+  .kv { display:grid; grid-template-columns:130px 1fr; gap:4px 10px; font-size:14px; margin:12px 0; }
+  .kv b { color:var(--muted); font-weight:600; }
+  .msg { background:var(--soft); border-radius:12px; padding:12px; white-space:pre-wrap; font-style:italic; }
+  .grade { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); gap:12px; }
+  .cons { display:flex; align-items:center; gap:12px; }
+  .cons img { width:48px; height:48px; border-radius:50%; object-fit:cover; background:var(--soft); }
+  .cons .nome { font-weight:800; font-size:17px; }
+  .switch { position:relative; width:46px; height:26px; background:#ccd; border-radius:999px; border:0; cursor:pointer; flex:none; }
+  .switch::after { content:""; position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:#fff; transition:left .15s; }
+  .switch.on { background:var(--green); } .switch.on::after { left:23px; }
+  .barras { display:grid; gap:6px; }
+  .barra { display:grid; grid-template-columns:140px 1fr 44px; align-items:center; gap:8px; font-size:13px; }
+  .barra .tr { height:14px; background:var(--soft); border-radius:4px; overflow:hidden; }
+  .barra .fi { height:100%; background:var(--navy); border-radius:0 4px 4px 0; min-width:2px; }
+  .barra .v { text-align:right; font-variant-numeric:tabular-nums; color:var(--muted); }
+  .dias { display:flex; align-items:flex-end; gap:3px; height:120px; padding-top:10px; }
+  .dia { flex:1; background:var(--navy); border-radius:3px 3px 0 0; min-height:2px; position:relative; }
+  .dia:hover { background:var(--blue); }
+  .dia .tip { display:none; position:absolute; bottom:100%; left:50%; transform:translateX(-50%); background:#17171D; color:#fff; font-size:12px; padding:3px 6px; border-radius:6px; white-space:nowrap; margin-bottom:4px; }
+  .dia:hover .tip { display:block; }
+  .login { max-width:380px; margin:60px auto; }
+  .login input { width:100%; border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin:6px 0 12px; }
+  .erro { color:var(--coral); font-size:13px; min-height:1.2em; }
+  .inp { border:1px solid var(--line); border-radius:8px; padding:6px 8px; width:100%; }
+  h3 { margin:18px 0 8px; font-size:16px; }
+  @media (max-width:700px) { .top-in { flex-wrap:wrap; } th.oc, td.oc { display:none; } .barra { grid-template-columns:100px 1fr 40px; } }
+  /* celular compacto (Luis, 20/11/2026: "ficou muito apertado"): topo numa linha só, cabeçalho da conversa e ferramentas enxutos */
+  @media (max-width:760px) {
+    .top-in { flex-wrap:nowrap; padding:6px 8px; gap:6px; }
+    .top img, .top .t, .top .sp, .who, #avisos[data-e="ligado"] { display:none; }
+    .tabs { flex:1; min-width:0; overflow-x:auto; scrollbar-width:none; } .tabs::-webkit-scrollbar { display:none; }
+    .tab { padding:6px 10px; font-size:14px; white-space:nowrap; }
+    #sair, #avisos { padding:4px 10px; font-size:12px; white-space:nowrap; }
+    .thead { padding:6px 10px; gap:4px 8px; font-size:14px; }
+    .thead .small { font-size:12px; }
+    .ferr { flex-wrap:nowrap; overflow-x:auto; padding:6px 8px; scrollbar-width:none; } .ferr::-webkit-scrollbar { display:none; }
+    .ferr .btn, .ferr .modo button { white-space:nowrap; padding:4px 8px; font-size:12px; }
+    .ferr .modo > .muted { display:none; }
+    .compor { padding:6px 8px; } .compor textarea { min-height:42px; height:42px; } .compor .btn { padding:8px 14px; }
+    .previas { padding:6px 10px; }
+    .previa img { width:90px; height:90px; }
+  }
+  /* prévia já enviada: fica recolhida numa linha (Luis, 20/11/2026) */
+  .previa-min > summary { cursor:pointer; font-size:13px; list-style:none; padding:2px 0; }
+  .previa-min > summary::-webkit-details-marker { display:none; }
+  .previa-min > summary::before { content:'▸ '; color:var(--muted); }
+  .previa-min[open] > summary::before { content:'▾ '; }
+  .previa-min[open] > summary { margin-bottom:8px; }
+.apagar{margin-top:18px;padding-top:12px;border-top:1px solid #eee}.btn-apagar{background:#fff;border:1px solid #c33;color:#c33;border-radius:6px;padding:5px 10px;cursor:pointer;font:inherit;font-size:13px}.btn-apagar.sim{background:#c33;color:#fff}
+.previas{padding:10px 12px;border-top:1px solid #e3e8f0;background:#fffbe6}
+.previa{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px}.previa img{width:140px;height:140px;object-fit:cover;border-radius:8px;border:1px solid #e3e8f0}
+.previa .txt{flex:1;font-size:13px}.previa .acoes{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+body.so-meu .sc{display:none}
+</style>
+</head>
+<body>
+
+<div class="top"><div class="top-in">
+  <img src="https://gobanners.com.br/wp-content/uploads/2024/01/GoBanners-Logotipo-Horizontal.svg" alt="GoBanners" onerror="this.style.display='none'">
+  <div class="t">Painel GoBanners</div>
+  <div class="tabs" id="tabs" hidden>
+    <button class="tab on" data-p="leads">Leads</button>
+    <button class="tab" data-p="numeros">Números</button>
+    <button class="tab" data-p="equipe">Equipe</button>
+    <button class="tab" data-p="deptos">Outros assuntos</button>
+  </div>
+  <div class="sp"></div>
+  <span class="who" id="who"></span>
+  <button class="sair" id="avisos" hidden title="Recebe no celular quando entra um lead novo para você">🔔 Ativar avisos no celular</button>
+  <button class="sair" id="sair" hidden>Sair</button>
+</div></div>
+
+<main>
+  <div class="painel on" id="p-login">
+    <div class="card login">
+      <h2 style="margin:0 0 4px">Entrar</h2>
+      <p class="muted small" style="margin:0 0 10px">Só e-mails @gobanners.com.br cadastrados na equipe.</p>
+      <label>E-mail<input type="email" id="lemail" autocomplete="username"></label>
+      <label>Senha<input type="password" id="lsenha" autocomplete="current-password"></label>
+      <button class="btn primario" id="entrar">Entrar</button>
+      <button class="btn" id="entrarGoogle" style="margin-top:8px;width:100%">Entrar com Google</button>
+      <div class="erro" id="lerro"></div>
+    </div>
+  </div>
+
+  <div class="painel" id="p-leads">
+    <div class="cards" id="kpis"></div>
+    <div class="filtros">
+      <select id="fStatus">
+        <option value="">Todos os status</option>
+        <option value="completo">Completos (no Pipedrive)</option>
+        <option value="parcial">Incompletos</option>
+        <option value="resgatado">Resgatados (Caixa de Leads)</option>
+        <option value="contato">Outros assuntos</option>
+        <option value="repetido">Repetidos (mesmo cliente)</option>
+        <option value="fora_catalogo">Fora do catálogo</option>
+      </select>
+      <select id="fCons"><option value="">Todos os vendedores</option></select>
+      <select id="fDias"><option value="hoje">Hoje</option><option value="ontem">Ontem</option><option value="30" selected>30 dias</option><option value="90">90 dias</option><option value="365">1 ano</option></select>
+      <input type="search" id="fBusca" placeholder="Buscar nome, empresa, telefone, e-mail…">
+      <button class="btn" id="csv">Exportar CSV</button>
+      <span class="muted small" id="cont"></span>
+    </div>
+    <div style="overflow:auto"><table>
+      <thead><tr><th>Quando</th><th>Nome</th><th>Empresa</th><th class="oc">WhatsApp</th><th class="oc">Produto</th><th>Status</th><th>Vendedor</th><th class="oc">Origem</th><th>Pipedrive</th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table></div>
+  </div>
+
+  <div class="painel" id="p-numeros">
+    <div class="cards" id="kpis2"></div>
+    <div class="grade">
+      <div class="card"><h3 style="margin-top:0">Leads por dia (30 dias)</h3><div class="dias" id="gDias"></div></div>
+      <div class="card"><h3 style="margin-top:0">Onde a conversa para</h3><div class="barras" id="gEtapas"></div><p class="muted small">Incompletos dos últimos 30 dias, pela última pergunta respondida.</p></div>
+      <div class="card"><h3 style="margin-top:0">Por vendedor (completos)</h3><div class="barras" id="gCons"></div></div>
+      <div class="card"><h3 style="margin-top:0">Canal de origem</h3><div class="barras" id="gCanal"></div><p class="muted small">De onde a pessoa veio. É a mesma regra que preenche o "Canal de vendas" no Pipedrive. Iniciados em 30 dias.</p></div>
+      <div class="card"><h3 style="margin-top:0">Página de entrada</h3><div class="barras" id="gPagina"></div><p class="muted small">Primeira página que ela abriu no site. Iniciados em 30 dias.</p></div>
+    </div>
+    <h2 style="margin:22px 0 4px">Do formulário à venda</h2>
+    <p class="muted small" style="margin:0 0 10px">Só os negócios que nasceram de formulários completos no período do filtro de cima (<span class="fPer"></span>). Qualificada = chegou a Diagnóstico; proposta = chegou a Proposta Feita (ganhos contam nas duas). Lido do Pipedrive, funil Vendas (IA).</p>
+    <div class="cards" id="kFunil"></div>
+    <div class="grade">
+      <div class="card" style="grid-column:1/-1;overflow-x:auto"><h3 style="margin-top:0">Por vendedor</h3><div id="tFunilCons"></div></div>
+      <div class="card" style="grid-column:1/-1;overflow-x:auto"><h3 style="margin-top:0">Por canal de origem</h3><div id="tFunilCanal"></div></div>
+      <div class="card" style="grid-column:1/-1;overflow-x:auto"><h3 style="margin-top:0">Por página de entrada</h3><div id="tFunilPagina"></div><p class="muted small" id="tFunilTop"></p></div>
+    </div>
+    <h2 style="margin:22px 0 4px">Tempo até o atendimento</h2>
+    <p class="muted small" style="margin:0 0 10px">Do fim do formulário até a primeira ação registrada no Pipedrive (atividade concluída ou mudança de etapa). Período: <span class="fPer"></span>.</p>
+    <div class="cards" id="kTempo"></div>
+    <div class="grade">
+      <div class="card" style="grid-column:1/-1;overflow-x:auto"><h3 style="margin-top:0">Por vendedor</h3><div id="tTempoCons"></div></div>
+      <div class="card" style="grid-column:1/-1;overflow-x:auto"><h3 style="margin-top:0">Leads esperando atendimento</h3><div id="tEsperando"></div></div>
+    </div>
+  </div>
+
+  <div class="painel" id="p-equipe">
+    <div class="card" style="margin-bottom:12px"><span id="fila"></span></div>
+    <div class="card" style="margin-bottom:12px"><b>🕗 Expediente</b> <span class="muted small">Fora dele o chat avisa o cliente quando a equipe retorna, e a atividade no Pipedrive nasce na abertura do próximo dia útil.</span><div id="horario" style="margin-top:8px"></div><span id="horarioOk" class="muted small"></span></div>
+    <div class="grade" id="consultoras"></div>
+    <p class="muted small">Desligar tira a pessoa do rodízio. Peso 2 = recebe o dobro. Quem abre o chat é sempre o vendedor da vez, e é ele quem aparece para o cliente do começo ao fim. Cliente que já está na base continua com quem já o atende.</p>
+  </div>
+
+  <div class="painel" id="p-deptos">
+    <div style="overflow:auto"><table>
+      <thead><tr><th>Área</th><th>Quem atende</th><th>WhatsApp (só dígitos, com 55)</th><th>E-mail</th><th>Registra no Pipedrive</th><th></th></tr></thead>
+      <tbody id="tbDep"></tbody>
+    </table></div>
+    <p class="muted small">"Registra no Pipedrive" cria uma atividade para a pessoa responsável a cada pedido de contato.</p>
+  </div>
+</main>
+
+<div class="drawer" id="drawer"><div class="box" id="drawerBox"></div></div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+import { SUPABASE_URL, SUPABASE_ANON } from './config.js';
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+const $ = (s) => document.querySelector(s);
+// ---- celular: altura real do menu fixo (Luis, 20/11/2026) ----
+(function () {
+  const topo = document.querySelector('.top');
+  const medir = () => document.documentElement.style.setProperty('--topH', topo.offsetHeight + 'px');
+  medir(); addEventListener('resize', medir);
+  try { new ResizeObserver(medir).observe(topo); } catch { /* navegador antigo */ }
+})();
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fone = (d) => { d = String(d || '').replace(/\D/g, ''); return d.length === 11 ? `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}` : d.length === 10 ? `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}` : d; };
+const dt = (s) => s ? new Date(s).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) : '';
+// última pergunta respondida, por passo. Preencher com o roteiro aprovado da GoBanners.
+const PERGUNTAS = { 0: 'abriu' };
+const PD = 'https://gobanners.pipedrive.com';
+let CONS = [], LEADS = [], DEPS = [], PODE_APAGAR = false, VE_TUDO = false;
+
+/* ---------- login ---------- */
+// Quem entra: só quem está cadastrado na equipe (tabela consultoras) ou como administrador (tabela admins). O banco confere
+// (funções eh_equipe / eh_admin); ter e-mail @gobanners.com.br sozinho não basta. Administrador vê tudo; vendedor vê só os leads dele.
+async function entrar() {
+  $('#lerro').textContent = '';
+  const { error } = await sb.auth.signInWithPassword({ email: $('#lemail').value.trim(), password: $('#lsenha').value });
+  if (error) { $('#lerro').textContent = 'Não deu: ' + (error.message === 'Invalid login credentials' ? 'e-mail ou senha errados.' : error.message); return; }
+}
+$('#entrar').addEventListener('click', entrar);
+$('#entrarGoogle').addEventListener('click', async () => {
+  $('#lerro').textContent = '';
+  const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + location.pathname, queryParams: { hd: 'gobanners.com.br', prompt: 'select_account' } } });
+  if (error) $('#lerro').textContent = 'Não deu: ' + error.message;
+});
+$('#lsenha').addEventListener('keydown', e => { if (e.key === 'Enter') entrar(); });
+$('#sair').addEventListener('click', () => sb.auth.signOut());
+// as consultas ao banco ficam fora do retorno do onAuthStateChange (consultar lá dentro pode travar o login)
+sb.auth.onAuthStateChange((_e, sess) => { setTimeout(() => aoMudarSessao(sess), 0); });
+let sessaoVista = null;
+async function aoMudarSessao(sess) {
+  const chave = sess ? sess.user.id : '';
+  if (chave && chave === sessaoVista) return;   // renovação de token: nada muda
+  sessaoVista = chave;
+  let ok = false, admin = false, apaga = false;
+  if (sess) {
+    const [e, a] = await Promise.all([sb.rpc('eh_equipe'), sb.rpc('eh_admin')]);
+    ok = e.data === true; admin = a.data === true;
+    if (!ok) {
+      $('#lerro').textContent = 'Este e-mail não está cadastrado na equipe. Peça o cadastro à administração.';
+      sessaoVista = null; await sb.auth.signOut(); return;
+    }
+    if (admin) { const { data } = await sb.from('admins').select('pode_apagar').ilike('email', sess.user.email || '').maybeSingle(); apaga = !!(data && data.pode_apagar); }
+  }
+  $('#p-login').classList.toggle('on', !ok);
+  $('#tabs').hidden = !ok; $('#sair').hidden = !ok; if (!ok) $('#avisos').hidden = true;
+  $('#who').textContent = ok ? sess.user.email : '';
+  PODE_APAGAR = apaga; VE_TUDO = admin;
+  // vendedor: só a aba Leads, com o que é dele (o banco é quem filtra). Números, equipe e outros assuntos ficam com a administração.
+  document.querySelectorAll('#tabs .tab').forEach(t => { if (t.dataset.p !== 'leads') t.hidden = !VE_TUDO; });
+  document.body.classList.toggle('so-meu', ok && !VE_TUDO); $('#fCons').hidden = ok && !VE_TUDO;
+  if (ok) {
+    $('#lerro').textContent = '';
+    const h = location.hash.replace(/^#/, '').split('/')[0];
+    mostrar(VE_TUDO && ['numeros', 'equipe', 'deptos'].includes(h) ? h : 'leads');
+    carregarTudo(); avisosEstado().catch(e => console.warn('avisos:', e));
+  } else document.querySelectorAll('.painel').forEach(p => p.classList.toggle('on', p.id === 'p-login'));
+}
+
+/* ---------- abas ---------- */
+function mostrar(p) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.p === p));
+  document.querySelectorAll('.painel').forEach(x => x.classList.toggle('on', x.id === 'p-' + p));
+}
+$('#tabs').addEventListener('click', e => { const t = e.target.closest('.tab'); if (!t) return; if (!VE_TUDO && t.dataset.p !== 'leads') return;
+  mostrar(t.dataset.p); history.replaceState(null, '', '#' + t.dataset.p); });
+function irPeloLink() { const h = location.hash.replace(/^#/, '').split('/')[0]; if (!$('#tabs').hidden && (h === 'leads' || VE_TUDO) && document.getElementById('p-' + h)) mostrar(h); }
+window.addEventListener('hashchange', irPeloLink);
+
+/* ---------- dados ---------- */
+async function carregarTudo() {
+  const [c, d] = await Promise.all([sb.from('consultoras').select('*').order('ordem'), sb.from('departamentos').select('*').order('ordem')]);
+  CONS = c.data || []; DEPS = d.data || [];   // departamentos: a tabela nasce junto com o roteiro; até lá vem vazia
+  $('#fCons').innerHTML = '<option value="">Todos os vendedores</option>' + CONS.filter(x => x.ativa || /vend/i.test(x.cargo || '')).map(x => `<option value="${x.id}">${esc(x.nome)}</option>`).join('');
+  await carregarLeads();
+  renderConsultoras(); renderDeps();
+}
+async function carregarLeads() {
+  const v = $('#fDias').value;
+  const meiaNoite = (d) => { const x = new Date(); x.setHours(0, 0, 0, 0); x.setDate(x.getDate() - d); return x.toISOString(); };
+  let q = sb.from('leads').select('*');
+  if (v === 'hoje') q = q.gte('criado_em', meiaNoite(0));
+  else if (v === 'ontem') q = q.gte('criado_em', meiaNoite(1)).lt('criado_em', meiaNoite(0));
+  else q = q.gte('criado_em', new Date(Date.now() - Number(v) * 86400000).toISOString());
+  const { data, error } = await q.order('criado_em', { ascending: false }).limit(2000);
+  if (error) { $('#tb').innerHTML = `<tr><td colspan="9" class="erro">${esc(error.message)}</td></tr>`; return; }
+  LEADS = data || [];
+  renderLeads(); renderNumeros();
+}
+['#fStatus', '#fCons', '#fBusca'].forEach(s => $(s).addEventListener('input', renderLeads));
+/* a busca vale para TODO o histórico, não só para o período escolhido (Luis, 16/11/2026: "se a pessoa está acima de 30 dias, ele não mostra").
+   Com 3+ caracteres, procura no banco sem filtro de data e junta o que estiver fora do período carregado. */
+let LEADS_FORA = [], leadBuscaT = null;
+$('#fBusca').addEventListener('input', () => {
+  const termo = $('#fBusca').value.trim(); LEADS_FORA = [];
+  clearTimeout(leadBuscaT);
+  if (termo.length < 3) return;
+  leadBuscaT = setTimeout(async () => {
+    const d = termo.replace(/\D/g, ''), txt = termo.replace(/[%,()*\\]/g, ' ').trim();
+    const ou = [];
+    if (txt && d.length < 8) ['nome', 'empresa', 'email', 'razao_social'].forEach(c => ou.push(`${c}.ilike.%${txt}%`));
+    if (d.length >= 4) { const u = d.slice(-8); ou.push(`whatsapp.ilike.%${u.length === 8 ? u.slice(0, 4) + '%' + u.slice(4) : u}%`); }
+    if (!ou.length) return;
+    const { data } = await sb.from('leads').select('*').or(ou.join(',')).order('criado_em', { ascending: false }).limit(100);
+    if (termo !== $('#fBusca').value.trim()) return;
+    LEADS_FORA = (data || []).filter(L => !LEADS.some(x => x.session_id === L.session_id && x.criado_em === L.criado_em));
+    if (LEADS_FORA.length) renderLeads();
+  }, 350);
+});
+$('#fDias').addEventListener('change', carregarLeads);
+
+function statusDe(L) {
+  if (L.tipo === 'contato' || L.status === 'contato') return ['contato', 'Contato' + (L.departamento ? ' · ' + (DEPS.find(d => d.id === L.departamento)?.label || L.departamento) : ''), 'cont'];
+  if (L.status === 'completo') return ['completo', 'Completo', 'ok'];
+  if (L.status === 'resgatado') return ['resgatado', 'Resgatado', 'resg'];
+  if (L.status === 'repetido') return ['repetido', 'Repetido · já tinha negócio', 'rep'];
+  if (L.status === 'fora_catalogo') return ['fora_catalogo', 'Fora do catálogo · ' + (L.detalhe || ''), 'rep'];
+  return ['parcial', 'Incompleto · ' + (PERGUNTAS[L.passo] || 'passo ' + L.passo), 'parcial'];
+}
+function filtrados() {
+  const st = $('#fStatus').value, co = $('#fCons').value, q = $('#fBusca').value.trim().toLowerCase();
+  const qd = q.replace(/\D/g, '');
+  return (q ? [...LEADS, ...LEADS_FORA] : LEADS).filter(L => {
+    const [s] = statusDe(L);
+    if (st && s !== st) return false;
+    if (co && L.consultora_id !== co) return false;
+    if (q) { const alvo = [L.nome, L.empresa, L.whatsapp, L.email, L.razao_social, L.cidade_uso].join(' ').toLowerCase(); const tel = String(L.whatsapp || '').replace(/\D/g, ''); if (!alvo.includes(q) && !(qd.length >= 4 && (tel.includes(qd) || (qd.length >= 8 && tel.endsWith(qd.slice(-8)))))) return false; }
+    return true;
+  });
+}
+function renderLeads() {
+  const rows = filtrados();
+  $('#cont').textContent = rows.length + ' de ' + LEADS.length;
+  const tot = LEADS.filter(L => L.tipo !== 'contato' && L.status !== 'repetido' && L.status !== 'fora_catalogo'), comp = tot.filter(L => L.status === 'completo');
+  $('#kpis').innerHTML = kpi(tot.length, 'orçamentos iniciados') + kpi(comp.length, 'completos') + kpi(tot.length ? Math.round(comp.length / tot.length * 100) + '%' : '–', 'taxa de conclusão') +
+    kpi(LEADS.filter(L => L.status === 'resgatado').length, 'resgatados') + kpi(LEADS.filter(L => L.tipo === 'contato').length, 'contatos');
+  $('#tb').innerHTML = rows.map(L => {
+    const [, lab, cls] = statusDe(L);
+    const cons = CONS.find(c => c.id === L.consultora_id);
+    const pdLink = L.pipedrive_deal_id ? `<a href="${PD}/deal/${L.pipedrive_deal_id}" target="_blank" rel="noopener">negócio</a>` : L.pipedrive_lead_id ? `<a href="${PD}/leads/inbox/${L.pipedrive_lead_id}" target="_blank" rel="noopener">lead</a>` : '<span class="muted">–</span>';
+    const origem = canalDe(L) + (L.origem_pagina && L.origem_pagina !== '/' ? ' · ' + L.origem_pagina.replace(/\/$/, '') : '');
+    return `<tr class="linha" data-id="${esc(L.session_id)}">
+      <td class="small">${dt(L.criado_em)}</td><td><b>${esc(L.nome || '–')}</b>${L.nome_digitado ? `<span class="aviso">escreveu: ${esc(L.nome_digitado)}</span>` : ''}</td><td>${esc(L.empresa || (L.pessoa_fisica ? 'pessoa física' : '–'))}${L.empresa_digitada ? `<span class="aviso">escreveu: ${esc(L.empresa_digitada)}</span>` : ''}</td>
+      <td class="oc small">${L.whatsapp ? `<a href="https://wa.me/${L.ddi && L.ddi !== '55' ? L.ddi : '55'}${esc(L.whatsapp)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${esc(fone(L.whatsapp))}</a>` : '–'}</td>
+      <td class="oc small">${esc(L.produto_nome || '–')}</td><td><span class="tag ${cls}">${esc(lab)}</span></td>
+      <td>${esc(cons ? cons.nome : (L.consultora_id || '–'))}</td>
+      <td class="oc small muted">${esc(origem)}</td><td onclick="event.stopPropagation()">${pdLink}</td></tr>`;
+  }).join('') || '<tr><td colspan="9" class="muted">Nada nesse filtro.</td></tr>';
+}
+const kpi = (n, l) => `<div class="card kpi"><div class="n">${n}</div><div class="l">${l}</div></div>`;
+$('#tb').addEventListener('click', e => { const tr = e.target.closest('tr.linha'); if (tr) abrirLead(tr.dataset.id); });
+
+function abrirLead(id) {
+  const L = LEADS.find(x => x.session_id === id) || LEADS_FORA.find(x => x.session_id === id); if (!L) return;
+  const Q = L.qualificacao || {}; const R = L.receita || {}; const cons = CONS.find(c => c.id === L.consultora_id);
+  const [, lab] = statusDe(L);
+  const kv = [
+    ['Status', lab], ['Quando', dt(L.criado_em) + (L.convertido_em ? ' → concluído ' + dt(L.convertido_em) : '')],
+    ['Nome', L.nome], ['Escreveu no campo nome', L.nome_digitado], ['WhatsApp', L.whatsapp ? fone(L.whatsapp) : ''], ['E-mail', L.email], ['Empresa', (L.empresa || (L.pessoa_fisica ? 'pessoa física (sem CNPJ)' : '')) + (L.razao_social ? ' · ' + L.razao_social : '')], ['Escreveu no campo empresa', L.empresa_digitada],
+    ['Produto', L.produto_nome + (L.detalhe ? ' (' + L.detalhe + ')' : '')], ['Objetivo', L.objetivo_label], ['Quando precisa', (L.quando_label || '') + (L.data_evento ? ' · ' + L.data_evento.split('-').reverse().join('/') : '')],
+    ['Cidade', L.cidade_uso + (L.cidade_cnpj && L.cidade_cnpj !== L.cidade_uso ? ' (CNPJ em ' + L.cidade_cnpj + ')' : '')],
+    ['CNPJ', L.cnpj ? L.cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') + (R.ie ? (R.ie.tem ? ' · IE ' + (R.ie.ativa ? 'ativa' : 'não ativa') + ' (' + R.ie.uf + ')' : ' · sem IE') : '') + (R.porte ? ' · ' + R.porte : '') : ''],
+    ['Vendedor', (cons ? cons.nome : L.consultora_id || '') + (L.distribuicao && VE_TUDO ? ' · ' + L.distribuicao : '')],   // motivo da distribuição (rodízio) só a administração vê
+    ['Origem', `<a href="${esc(L.origem_url && /^https?:\/\//.test(L.origem_url) ? L.origem_url : 'https://gobanners.com.br' + (L.origem_pagina || '/'))}" target="_blank" rel="noopener">${esc(L.origem_pagina && L.origem_pagina !== '/' ? L.origem_pagina : 'página inicial')}</a>` + ' · ' + esc(canalDe(L)) + (L.utms && Object.keys(L.utms).length ? ' · ' + esc(Object.entries(L.utms).map(([k, v]) => k.replace('utm_', '') + '=' + v).join(' ')) : '')],
+    ['Score', VE_TUDO && Q.potencial ? Q.potencial + (Q.potencial_motivo ? ' · ' + Q.potencial_motivo : '') : ''],   // score é interno: consultora não vê
+    ['Perfil', Q.perfil ? Q.perfil + (Q.rede ? ' · REDE: ' + Q.unidades : '') : ''],
+    ['Pipedrive', L.pipedrive_deal_id ? `<a href="${PD}/deal/${L.pipedrive_deal_id}" target="_blank" rel="noopener">abrir negócio</a>` : L.pipedrive_lead_id ? `<a href="${PD}/leads/inbox/${L.pipedrive_lead_id}" target="_blank" rel="noopener">abrir na Caixa de Leads</a>` : ''],
+  ].filter(([, v]) => v && String(v).trim() && v !== 'undefined' && v !== 'null');
+  $('#drawerBox').innerHTML = `<button class="x" id="fechaD">×</button><h2>${esc(L.nome || 'Lead')}</h2><div class="muted small">${esc(L.empresa || '')}</div>
+    <div class="kv">${kv.map(([k, v]) => `<b>${k}</b><span>${k === 'Pipedrive' || k === 'Origem' ? v : esc(v)}</span>`).join('')}</div>
+    ${Q.abertura_sugerida ? `<h3>Sugestão de mensagem</h3><div class="msg">${esc(Q.abertura_sugerida)}</div>` : ''}
+    ${Q.oportunidade ? `<h3>Jogada</h3><div>${esc(Q.oportunidade)}</div>` : ''}
+    ${(Q.falta_descobrir || []).length ? `<h3>Falta descobrir</h3><ul>${Q.falta_descobrir.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+    ${(Q.atencao || []).length ? `<h3>Atenção</h3><ul>${Q.atencao.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+    <p class="muted small">sessão ${esc(L.session_id)}</p>
+    ${PODE_APAGAR ? `<p class="apagar"><button class="btn-apagar" id="apagar1">Apagar este lead</button><span id="apagar2" hidden> Some do painel, mas <b>não</b> apaga o negócio no Pipedrive. <button class="btn-apagar sim" id="apagarSim">Confirmar</button> <button class="btn-apagar" id="apagarNao">Cancelar</button></span><span id="apagarErro" class="erro"></span></p>` : ''}`;
+  $('#drawer').classList.add('on');
+  $('#fechaD').addEventListener('click', () => $('#drawer').classList.remove('on'));
+  if (PODE_APAGAR) {
+    $('#apagar1').addEventListener('click', () => { $('#apagar1').hidden = true; $('#apagar2').hidden = false; });
+    $('#apagarNao').addEventListener('click', () => { $('#apagar1').hidden = false; $('#apagar2').hidden = true; });
+    $('#apagarSim').addEventListener('click', async () => {
+      $('#apagarSim').disabled = true;
+      const { error } = await sb.from('leads').delete().eq('session_id', L.session_id);
+      if (error) { $('#apagarErro').textContent = ' Não deu: ' + error.message; $('#apagarSim').disabled = false; return; }
+      LEADS = LEADS.filter(x => x.session_id !== L.session_id);
+      $('#drawer').classList.remove('on'); renderLeads(); renderNumeros();
+    });
+  }
+}
+$('#drawer').addEventListener('click', e => { if (e.target === $('#drawer')) $('#drawer').classList.remove('on'); });
+
+$('#csv').addEventListener('click', () => {
+  const cols = ['criado_em', 'status', 'passo', 'nome', 'whatsapp', 'email', 'empresa', 'razao_social', 'cnpj', 'produto_nome', 'objetivo_label', 'quando_label', 'data_evento', 'cidade_uso', 'consultora_id', 'origem_pagina', 'pipedrive_deal_id', 'pipedrive_lead_id'];
+  const linhas = [cols.join(';')].concat(filtrados().map(L => cols.map(c => '"' + String(L[c] ?? '').replace(/"/g, '""') + '"').join(';')));
+  const blob = new Blob(['﻿' + linhas.join('\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'leads-gobanners.csv'; a.click();
+});
+
+/* ---------- app instalável + avisos no celular (Web Push; ver sw.js e a função push) ---------- */
+const PUSH_FN = SUPABASE_URL + '/functions/v1/push';
+const temPush = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+async function chamarPush(body) {
+  const { data: { session } } = await sb.auth.getSession();
+  const r = await fetch(PUSH_FN, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + (session?.access_token || '') }, body: JSON.stringify(body) });
+  return r.json().catch(() => ({ ok: false, erro: 'resposta inválida' }));
+}
+// service worker pronto; se o sw.js não estiver no servidor, desiste em 8 s em vez de travar o botão
+const swPronto = () => Promise.race([navigator.serviceWorker.ready, new Promise((_, nao) => setTimeout(() => nao(new Error('o painel está sem o sw.js no servidor.')), 8000))]);
+const chaveBytes = (b64) => { const s = atob(b64.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((b64.length + 3) % 4)); return Uint8Array.from(s, c => c.charCodeAt(0)); };
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(e => console.warn('service worker:', e));
+  // aviso tocado com o painel já aberto: o sw.js manda o link da aba
+  navigator.serviceWorker.addEventListener('message', e => { const h = e.data && e.data.abrir; if (!h) return; if (location.hash === h) irPeloLink(); else location.hash = h; });
+}
+async function avisosEstado() {
+  const b = $('#avisos');
+  // iPhone só tem push no painel instalado (Adicionar à Tela de Início); fora dele, o botão explica como fazer
+  if (!temPush) { b.hidden = !ehIOS; b.textContent = '🔔 Avisos no celular'; b.dataset.e = 'ios'; return; }
+  b.hidden = false;
+  if (Notification.permission === 'denied') { b.textContent = '🔕 Avisos bloqueados'; b.dataset.e = 'bloqueado'; return; }
+  const s = await (await swPronto()).pushManager.getSubscription();
+  if (s && Notification.permission === 'granted') {
+    b.textContent = '🔔 Avisos ligados'; b.dataset.e = 'ligado';
+    chamarPush({ acao: 'inscrever', subscription: s.toJSON() });   // reenvia: a inscrição fica em nome de quem está logado
+  } else { b.textContent = '🔔 Ativar avisos no celular'; b.dataset.e = 'desligado'; }
+}
+$('#avisos').addEventListener('click', async () => {
+  const b = $('#avisos'), e = b.dataset.e;
+  if (e === 'ios') { alert('No iPhone, os avisos só funcionam com o painel instalado: no Safari, toque em Compartilhar → "Adicionar à Tela de Início", abra o Painel GoBanners pelo ícone, entre e toque aqui de novo.'); return; }
+  if (e === 'bloqueado') { alert('Os avisos estão bloqueados neste aparelho. Libere as notificações deste site (no cadeado ao lado do endereço, ou nos Ajustes do celular → Notificações) e toque aqui de novo.'); return; }
+  if (e === 'ligado') {
+    if (!confirm('Desligar os avisos neste aparelho?')) return;
+    const s = await (await swPronto()).pushManager.getSubscription();
+    if (s) { await chamarPush({ acao: 'sair', endpoint: s.endpoint }); await s.unsubscribe(); }
+    return avisosEstado();
+  }
+  const permissao = Notification.requestPermission();   // primeiro, ainda dentro do toque (o iPhone exige)
+  b.disabled = true; b.textContent = 'Ativando…';
+  try {
+    if (await permissao !== 'granted') throw new Error('a permissão de notificações não foi dada.');
+    const k = await chamarPush({ acao: 'chave' });
+    if (!k.ok) throw new Error(k.erro || 'sem chave');
+    const reg = await swPronto();
+    const velha = await reg.pushManager.getSubscription(); if (velha) await velha.unsubscribe();   // inscrição de outra chave impede a nova
+    const s = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: chaveBytes(k.chave) });
+    const r = await chamarPush({ acao: 'inscrever', subscription: s.toJSON() });
+    if (!r.ok) throw new Error(r.erro || 'não gravou');
+    chamarPush({ acao: 'teste' });
+  } catch (err) { alert('Não deu para ativar os avisos: ' + (err.message || err)); }
+  finally { b.disabled = false; avisosEstado(); }
+});
+
+/* ---------- números ---------- */
+function barras(el, pares, total) {
+  const max = Math.max(1, ...pares.map(p => p[1]));
+  el.innerHTML = pares.map(([k, v]) => `<div class="barra"><span title="${esc(k)}">${esc(k)}</span><div class="tr"><div class="fi" style="width:${Math.round(v / max * 100)}%"></div></div><span class="v">${v}${total ? ' · ' + Math.round(v / total * 100) + '%' : ''}</span></div>`).join('') || '<span class="muted small">Sem dados.</span>';
+}
+function renderNumeros() {
+  const ini = new Date(); ini.setHours(0, 0, 0, 0); ini.setDate(ini.getDate() - 29);
+  const orc = LEADS.filter(L => L.tipo !== 'contato' && L.status !== 'repetido' && new Date(L.criado_em) >= ini);
+  const comp = orc.filter(L => L.status === 'completo');
+  $('#kpis2').innerHTML = kpi(orc.length, 'iniciados em 30 dias') + kpi(comp.length, 'completos') + kpi(orc.length ? Math.round(comp.length / orc.length * 100) + '%' : '–', 'conclusão') + kpi((comp.length / 30).toFixed(1), 'completos por dia');
+  const porDia = {}; for (let i = 0; i < 30; i++) { const d = new Date(ini); d.setDate(ini.getDate() + i); porDia[d.toISOString().slice(0, 10)] = 0; }
+  comp.forEach(L => { const k = new Date(L.criado_em).toISOString().slice(0, 10); if (k in porDia) porDia[k]++; });
+  const mx = Math.max(1, ...Object.values(porDia));
+  $('#gDias').innerHTML = Object.entries(porDia).map(([d, n]) => `<div class="dia" style="height:${Math.max(2, n / mx * 100)}%"><span class="tip">${d.split('-').reverse().slice(0, 2).join('/')}: ${n}</span></div>`).join('');
+  const inc = orc.filter(L => L.status !== 'completo');
+  const etapas = {}; inc.forEach(L => { const k = PERGUNTAS[L.passo] || 'passo ' + L.passo; etapas[k] = (etapas[k] || 0) + 1; });
+  barras($('#gEtapas'), Object.entries(etapas).sort((a, b) => b[1] - a[1]), inc.length);
+  const pc = {}; comp.forEach(L => { const n = CONS.find(c => c.id === L.consultora_id)?.nome || L.consultora_id || '?'; pc[n] = (pc[n] || 0) + 1; });
+  barras($('#gCons'), Object.entries(pc).sort((a, b) => b[1] - a[1]), comp.length);
+  const pcn = {}, ppg = {};
+  orc.forEach(L => { const c = canalDe(L), g = tipoPagina(L); pcn[c] = (pcn[c] || 0) + 1; ppg[g] = (ppg[g] || 0) + 1; });
+  barras($('#gCanal'), Object.entries(pcn).sort((a, b) => b[1] - a[1]).slice(0, 8), orc.length);
+  barras($('#gPagina'), Object.entries(ppg).sort((a, b) => b[1] - a[1]), orc.length);
+  renderFunil().catch(e => { $('#kFunil').innerHTML = `<div class="erro small">${esc(String(e.message || e))}</div>`; });
+}
+
+/* ---------- canal × página ---------- */
+// MESMA regra do servidor (origemDoLead, em supabase/functions/_shared/comum.ts): o que aparece aqui é o que vai no
+// campo "Canal de vendas" do Pipedrive. Mudou lá, muda aqui.
+function canalDe(L) {
+  const u = L.utms || {}, src = String(u.utm_source || '').toLowerCase(), med = String(u.utm_medium || '').toLowerCase(), ref = String(u.ref || '').toLowerCase();
+  const pago = /cpc|ppc|paid|ads|pago/.test(med);
+  if (src) {
+    if (/youtube/.test(src)) return 'YouTube';
+    if (/google|bing/.test(src)) return pago || /ads/.test(src) ? 'Google Ads' : 'Google Orgânico';
+    if (/facebook|instagram|meta|^fb$|^ig$/.test(src)) return pago || /ads/.test(src) ? 'Meta Ads' : 'Instagram Orgânico';
+    if (/chatgpt|openai|perplexity|gemini|claude|copilot/.test(src)) return 'IA';
+    if (/^rd|rdstation|e-?mail|newsletter/.test(src)) return 'E-mail';
+  }
+  if (u.gclid || u.gbraid || u.wbraid) return 'Google Ads';
+  if (u.fbclid && !ref) return 'Meta Ads';
+  if (ref) {
+    if (/youtube|youtu\.be/.test(ref)) return 'YouTube';
+    if (/google\.|bing\.|duckduckgo|yahoo/.test(ref)) return 'Google Orgânico';
+    if (/instagram/.test(ref)) return 'Instagram Orgânico';
+    if (/facebook|fb\.com/.test(ref)) return 'Meta Ads';
+    if (/chatgpt|openai|perplexity|gemini|claude\.ai|copilot/.test(ref)) return 'IA';
+  }
+  return 'Tráfego Direto';
+}
+function paginaDe(L) {
+  // entrada = primeira página visitada no site (utms.landing, cookie); sem ela, a página onde o chat abriu
+  let p = String((L.utms && L.utms.landing) || L.origem_pagina || '').trim().replace(/\/+$/, '');
+  if (!p || p === '/') return '/';
+  return p.startsWith('/') ? p : '/' + p;
+}
+function tipoPagina(L) {
+  const p = paginaDe(L);
+  if (p === '/') return 'Início';
+  if (/^\/blog(\/|$)/.test(p)) return 'Blog';
+  return p;   // na GoBanners cada produto tem a sua página: mostrar a página é mais útil que agrupar
+}
+
+/* ---------- funil e tempo de atendimento (30/10/2026) ---------- */
+const fmtR = (v) => 'R$ ' + Math.round(v).toLocaleString('pt-BR');
+const fmtMin = (m) => m == null ? '–' : m < 60 ? Math.round(m) + ' min' : m < 48 * 60 ? (m / 60).toFixed(m < 600 ? 1 : 0).replace('.', ',') + ' h' : Math.round(m / 1440) + ' dias';
+const mediana = (a) => { if (!a.length) return null; const b = [...a].sort((x, y) => x - y), i = Math.floor(b.length / 2); return b.length % 2 ? b[i] : (b[i - 1] + b[i]) / 2; };
+async function emLotes(tabela, col, valores, campos, extra) {
+  const out = [];
+  for (let i = 0; i < valores.length; i += 150) {
+    let q = sb.from(tabela).select(campos).in(col, valores.slice(i, i + 150));
+    if (extra) q = extra(q);
+    const { data, error } = await q.limit(5000);
+    if (error) throw error; out.push(...(data || []));
+  }
+  return out;
+}
+function tabelaFunil(grupos) {
+  const linhas = Object.entries(grupos).sort((a, b) => b[1].c - a[1].c);
+  if (!linhas.length) return '<span class="muted small">Sem dados no período.</span>';
+  const pct = (a, b) => b ? Math.round(a / b * 100) + '%' : '–';
+  return `<table><thead><tr><th></th><th>Completos</th><th>Qualificadas</th><th>Propostas</th><th>Ganhos</th><th>Valor ganho</th><th>Conversão</th><th>Ticket</th></tr></thead><tbody>` +
+    linhas.map(([k, g]) => `<tr><td><b>${esc(k)}</b></td><td>${g.c}</td><td>${g.q} <span class="muted small">${pct(g.q, g.c)}</span></td><td>${g.p} <span class="muted small">${pct(g.p, g.c)}</span></td><td>${g.w}</td><td>${g.v ? fmtR(g.v) : '–'}</td><td>${pct(g.w, g.c)}</td><td>${g.w ? fmtR(g.v / g.w) : '–'}</td></tr>`).join('') + '</tbody></table>';
+}
+async function renderFunil() {
+  const per = { hoje: 'hoje', ontem: 'ontem', '30': 'últimos 30 dias', '90': 'últimos 90 dias', '365': 'último ano' }[$('#fDias').value] || '';
+  document.querySelectorAll('.fPer').forEach(e => e.textContent = per);
+  const comp = LEADS.filter(L => L.tipo !== 'contato' && L.status === 'completo');
+  const ids = [...new Set(comp.map(L => L.pipedrive_deal_id).filter(Boolean))];
+  const neg = ids.length ? await emLotes('pd_negocios', 'deal_id', ids, '*') : [];
+  const N = new Map(neg.map(n => [Number(n.deal_id), n]));
+  const consDe = (L, n) => (n && CONS.find(c => Number(c.pipedrive_user_id) === Number(n.owner_id))?.nome) || CONS.find(c => c.id === L.consultora_id)?.nome || L.consultora_id || 'sem vendedor';
+  const G = { cons: {}, canal: {}, pag: {}, url: {} }, tot = { c: 0, q: 0, p: 0, w: 0, v: 0, l: 0 };
+  const soma = (obj, k, n) => { const g = obj[k] = obj[k] || { c: 0, q: 0, p: 0, w: 0, v: 0 }; g.c++; if (n?.qualificada) g.q++; if (n?.proposta) g.p++; if (n?.status === 'won') { g.w++; g.v += Number(n.valor) || 0; } };
+  comp.forEach(L => {
+    const n = N.get(Number(L.pipedrive_deal_id));
+    tot.c++; if (n?.qualificada) tot.q++; if (n?.proposta) tot.p++; if (n?.status === 'won') { tot.w++; tot.v += Number(n.valor) || 0; } if (n?.status === 'lost') tot.l++;
+    soma(G.cons, consDe(L, n), n); soma(G.canal, canalDe(L), n); soma(G.pag, tipoPagina(L), n); soma(G.url, paginaDe(L), n);
+  });
+  const p = (a) => tot.c ? ` <span class="muted small">${Math.round(a / tot.c * 100)}%</span>` : '';
+  $('#kFunil').innerHTML = kpi(tot.c, 'completos') + kpi(tot.q + p(tot.q), 'oportunidades qualificadas') + kpi(tot.p + p(tot.p), 'propostas') + kpi(tot.w + p(tot.w), 'negócios ganhos') + kpi(tot.v ? fmtR(tot.v) : '–', 'valor ganho' + (tot.w ? ' · ticket ' + fmtR(tot.v / tot.w) : '')) + kpi(tot.l, 'perdidos');
+  $('#tFunilCons').innerHTML = tabelaFunil(G.cons);
+  $('#tFunilCanal').innerHTML = tabelaFunil(G.canal);
+  $('#tFunilPagina').innerHTML = tabelaFunil(G.pag);
+  const top = Object.entries(G.url).filter(([, g]) => g.q || g.w).sort((a, b) => (b[1].w - a[1].w) || (b[1].q - a[1].q)).slice(0, 6);
+  $('#tFunilTop').innerHTML = top.length ? 'Páginas que mais geraram oportunidades: ' + top.map(([u, g]) => `<b>${esc(u === '/' ? 'início' : u)}</b> (${g.q} qualif.${g.w ? ', ' + g.w + ' ganho' + (g.w > 1 ? 's' : '') : ''})`).join(' · ') : '';
+  if (!neg.length && ids.length) $('#kFunil').insertAdjacentHTML('beforeend', '<div class="muted small" style="grid-column:1/-1">Os negócios ainda não foram lidos do Pipedrive (a primeira leitura roda em até 15 min).</div>');
+
+  // ---- tempo até o atendimento: do fim do formulário até a primeira ação registrada no Pipedrive ----
+  const tHu = [], porCons = {}, esperando = [];
+  comp.forEach(L => {
+    const fim = new Date(L.convertido_em || L.criado_em).getTime();
+    const n = N.get(Number(L.pipedrive_deal_id));
+    const t = n && n.resposta_humana_em ? new Date(n.resposta_humana_em).getTime() : null;
+    const h = t != null && t >= fim - 60000 ? t : null;
+    const cn = consDe(L, n), g = porCons[cn] = porCons[cn] || { t: [], sem: 0, total: 0 };
+    g.total++;
+    if (h != null) { const m = Math.max(0, (h - fim) / 60000); tHu.push(m); g.t.push(m); }
+    else if (!n || n.status === 'open') {
+      g.sem++;
+      if (Date.now() - fim < 14 * 86400000) esperando.push({ L, n, cn, min: (Date.now() - fim) / 60000 });
+    }
+  });
+  const ate = (a, lim) => a.length ? Math.round(a.filter(x => x <= lim).length / a.length * 100) + '%' : '–';
+  $('#kTempo').innerHTML = kpi(fmtMin(mediana(tHu)), `mediana (${tHu.length} leads)`) + kpi(ate(tHu, 60), 'em até 1 h') + kpi(ate(tHu, 24 * 60), 'em até 24 h') + kpi(comp.length - tHu.length, 'sem ação registrada');
+  const lc = Object.entries(porCons).sort((a, b) => b[1].total - a[1].total);
+  $('#tTempoCons').innerHTML = lc.length ? `<table><thead><tr><th></th><th>Leads</th><th>Mediana</th><th>Em até 1 h</th><th>Em até 24 h</th><th>Sem ação registrada</th></tr></thead><tbody>` +
+    lc.map(([k, g]) => `<tr><td><b>${esc(k)}</b></td><td>${g.total}</td><td>${fmtMin(mediana(g.t))}</td><td>${ate(g.t, 60)}</td><td>${ate(g.t, 1440)}</td><td>${g.sem}</td></tr>`).join('') + '</tbody></table>' : '<span class="muted small">Sem dados no período.</span>';
+  esperando.sort((a, b) => b.min - a.min);
+  $('#tEsperando').innerHTML = esperando.length ? `<table><thead><tr><th>Esperando há</th><th>Nome</th><th>Empresa</th><th>Vendedor</th><th>Negócio</th></tr></thead><tbody>` +
+    esperando.slice(0, 50).map(x => `<tr><td><b>${fmtMin(x.min)}</b></td><td>${esc(x.L.nome || '')}</td><td>${esc(x.L.empresa || '')}</td><td>${esc(x.cn)}</td><td>${x.L.pipedrive_deal_id ? `<a href="${PD}/deal/${x.L.pipedrive_deal_id}" target="_blank" rel="noopener">abrir</a>` : ''}</td></tr>`).join('') + '</tbody></table>'
+    : '<span class="muted small">Nenhum lead esperando. 👏</span>';
+}
+
+/* ---------- equipe ---------- */
+const DIAS_SEMANA = [[1, 'Segunda'], [2, 'Terça'], [3, 'Quarta'], [4, 'Quinta'], [5, 'Sexta'], [6, 'Sábado'], [0, 'Domingo']];
+async function renderHorario() {
+  const { data } = await sb.from('config').select('valor').eq('chave', 'horario').maybeSingle();
+  let H = {}; try { H = JSON.parse((data && data.valor) || '{}') || {}; } catch { H = {}; }
+  $('#horario').innerHTML = DIAS_SEMANA.map(([d, nome]) => { const f = H[d]; return `<div class="small" style="display:flex;gap:10px;align-items:center;padding:4px 0">
+    <label style="width:110px"><input type="checkbox" data-hd="${d}" ${f ? 'checked' : ''}> ${nome}</label>
+    <input type="time" data-hi="${d}" value="${esc(f ? f[0] : '08:00')}" ${f ? '' : 'disabled'}> às <input type="time" data-hf="${d}" value="${esc(f ? f[1] : '17:00')}" ${f ? '' : 'disabled'}></div>`; }).join('') +
+    '<button class="btn" id="horarioSalvar" style="margin-top:6px">Salvar expediente</button>';
+  $('#horario').querySelectorAll('[data-hd]').forEach(c => c.addEventListener('change', () => { const d = c.dataset.hd; $(`[data-hi="${d}"]`).disabled = $(`[data-hf="${d}"]`).disabled = !c.checked; }));
+  $('#horarioSalvar').addEventListener('click', async () => {
+    const novo = {};
+    for (const [d] of DIAS_SEMANA) {
+      if (!$(`[data-hd="${d}"]`).checked) continue;
+      const i = $(`[data-hi="${d}"]`).value, f = $(`[data-hf="${d}"]`).value;
+      if (!i || !f || i >= f) { $('#horarioOk').textContent = 'Confira os horários: a abertura tem que ser antes do fechamento.'; return; }
+      novo[d] = [i, f];
+    }
+    if (!Object.keys(novo).length) { $('#horarioOk').textContent = 'Deixe pelo menos um dia marcado.'; return; }
+    const { error } = await sb.from('config').upsert({ chave: 'horario', valor: JSON.stringify(novo), atualizado_em: new Date().toISOString() });
+    $('#horarioOk').textContent = error ? 'Não deu: ' + error.message : 'salvo ✓ (vale em até 5 minutos)'; setTimeout(() => $('#horarioOk').textContent = '', 4000);
+  });
+}
+async function renderConsultoras() {
+  if (!VE_TUDO) return;
+  const { data: rod } = await sb.from('rodizio').select('contador').eq('id', 1).maybeSingle();
+  const fila = CONS.filter(c => c.ativa && (c.peso ?? 1) > 0).flatMap(c => Array(c.peso ?? 1).fill(c));
+  const prox = fila.length ? fila[(rod?.contador || 0) % fila.length] : null;
+  $('#fila').innerHTML = fila.length ? `Fila agora: <b>${fila.map(c => esc(c.nome)).join(' → ')}</b> · próximo a receber: <b>${esc(prox.nome)}</b> · ${rod?.contador || 0} leads distribuídos` : '<b style="color:var(--coral)">Ninguém ativo no rodízio. Ligue pelo menos um vendedor.</b>';
+  renderHorario().catch(e => console.warn('horário:', e));
+  $('#consultoras').innerHTML = CONS.map(c => `
+    <div class="card cons">
+      <img src="${esc(c.foto_url || 'https://gobanners.com.br/wp-content/uploads/2023/11/Favicon.png')}" alt="" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">
+      <div style="flex:1"><div class="nome">${esc(c.nome)}</div><div class="muted small">${esc(c.cargo || '')}${c.cargo ? ' · ' : ''}${esc(fone((c.whatsapp || '').replace(/^55/, '')))}${c.email ? ' · ' + esc(c.email) : ''}${c.pipedrive_user_id ? '' : ' · <span style="color:var(--coral)">sem usuário no Pipedrive</span>'}</div>
+        <div class="small" style="margin-top:6px">Peso <select data-peso="${c.id}"><option value="0" ${c.peso === 0 ? 'selected' : ''}>0 · fora do rodízio</option><option value="1" ${c.peso == null || c.peso == 1 ? 'selected' : ''}>1</option><option value="2" ${c.peso == 2 ? 'selected' : ''}>2</option><option value="3" ${c.peso == 3 ? 'selected' : ''}>3</option></select></div></div>
+      <button class="switch ${c.ativa ? 'on' : ''}" data-ativa="${c.id}" title="${c.ativa ? 'No rodízio. Clique para desligar' : 'Fora do rodízio. Clique para ligar'}"></button>
+    </div>`).join('');
+  document.querySelectorAll('[data-ativa]').forEach(b => b.addEventListener('click', async () => {
+    const c = CONS.find(x => x.id === b.dataset.ativa);
+    // ligar quem está com peso 0 já coloca peso 1, senão a pessoa fica "ligada" e fora da fila
+    const novo = !c.ativa ? { ativa: true, peso: (c.peso ?? 1) > 0 ? c.peso : 1 } : { ativa: false };
+    const { error } = await sb.from('consultoras').update(novo).eq('id', c.id);
+    if (error) return alert('Não salvou: ' + error.message); Object.assign(c, novo); renderConsultoras();
+  }));
+  document.querySelectorAll('[data-peso]').forEach(s => s.addEventListener('change', async () => {
+    const c = CONS.find(x => x.id === s.dataset.peso); const { error } = await sb.from('consultoras').update({ peso: Number(s.value) }).eq('id', c.id);
+    if (error) return alert('Não salvou: ' + error.message); c.peso = Number(s.value); renderConsultoras();
+  }));
+}
+
+/* ---------- departamentos ---------- */
+function renderDeps() {
+  $('#tbDep').innerHTML = DEPS.map(d => `<tr data-dep="${d.id}">
+    <td><b>${esc(d.label)}</b></td>
+    <td><input class="inp" data-f="pessoa" value="${esc(d.pessoa || '')}"></td>
+    <td><input class="inp" data-f="whatsapp" value="${esc(d.whatsapp || '')}"></td>
+    <td><input class="inp" data-f="email" value="${esc(d.email || '')}"></td>
+    <td><input type="checkbox" data-f="registrar" ${d.registrar ? 'checked' : ''}></td>
+    <td><button class="btn" data-salvar="${d.id}">Salvar</button></td></tr>`).join('');
+  document.querySelectorAll('[data-salvar]').forEach(b => b.addEventListener('click', async () => {
+    const tr = b.closest('tr'); const up = {};
+    tr.querySelectorAll('[data-f]').forEach(i => { up[i.dataset.f] = i.type === 'checkbox' ? i.checked : (i.value.trim() || null); });
+    if (up.whatsapp) up.whatsapp = up.whatsapp.replace(/\D/g, '');
+    const { error } = await sb.from('departamentos').update(up).eq('id', b.dataset.salvar);
+    b.textContent = error ? 'Erro' : 'Salvo ✓'; setTimeout(() => b.textContent = 'Salvar', 1500);
+    if (error) alert('Não salvou: ' + error.message); else Object.assign(DEPS.find(d => d.id === b.dataset.salvar), up);
+  }));
+}
+</script>
+</body>
+</html>

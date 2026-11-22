@@ -429,7 +429,7 @@
         <img class="logo" src="https://gobanners.com.br/wp-content/uploads/2024/01/GoBanners-Logotipo-Horizontal.svg" alt="GoBanners">
         <div class="txt"><div class="t1">Solicitar orçamento</div><div class="t2">Leva menos de 1 minuto</div></div>
       </div>
-      <div class="stepinfo" id="stepinfo">Passo <b><span id="stepNow">1</span></b> de <span id="stepTotal">5</span></div>
+      <div class="stepinfo" id="stepinfo">Passo <b><span id="stepNow">1</span></b> de <span id="stepTotal">6</span></div>
     </div>
     <div class="track" aria-hidden="true"><div class="fill" id="fill"></div></div>
     <div class="proof" aria-label="Sobre a GoBanners">
@@ -487,6 +487,8 @@
   var soDigitos = function (s) { return String(s || '').replace(/\D/g, ''); };
   var primeiroNome = function (n) { return String(n || '').trim().split(/\s+/)[0] || ''; };
   var capitalizar = function (n) { return String(n || '').trim().replace(/\s+/g, ' ').split(' ').map(function (w, i) { var l = w.toLowerCase(); return i > 0 && /^(da|de|do|das|dos|e)$/.test(l) ? l : l.charAt(0).toUpperCase() + l.slice(1); }).join(' '); };
+  var fmtCnpj = function (v) { var d = soDigitos(v).slice(0, 14); return d.replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1/$2').replace(/(\d{4})(\d)/, '$1-$2'); };
+  var cnpjValido = function (v) { var d = soDigitos(v); if (d.length !== 14 || /^(\d)\1+$/.test(d)) return false; var dv = function (n) { var p = n - 7, s = 0; for (var i = 0; i < n; i++) { s += +d.charAt(i) * p--; if (p < 2) p = 9; } var r = s % 11; return r < 2 ? 0 : 11 - r; }; return dv(12) === +d.charAt(12) && dv(13) === +d.charAt(13); };
   var fmtFone = function (d) { d = soDigitos(d).slice(0, 11); if (d.length <= 2) return d; if (d.length <= 6) return '(' + d.slice(0, 2) + ') ' + d.slice(2); if (d.length <= 10) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6); return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7); };
 
   /* ---------- de onde a pessoa veio ---------- */
@@ -535,7 +537,7 @@
   }
   function gravar(passo, extra) {
     var corpo = { session_id: L.session_id, passo: passo, nome: L.nome || undefined, whatsapp: L.whatsapp || undefined, ddi: L.ddi, email: L.email || undefined,
-      empresa: L.empresa || undefined, pessoa_fisica: L.pessoa_fisica, produto_id: L.produto_id || undefined, produto_nome: L.produto_nome || undefined,
+      empresa: L.empresa || undefined, cnpj: L.cnpj || undefined, pessoa_fisica: L.pessoa_fisica, produto_id: L.produto_id || undefined, produto_nome: L.produto_nome || undefined,
       origem_url: L.origem_url, origem_pagina: L.origem_pagina, utms: L.utms, consultora_id: V.id || undefined, distribuicao: DISTRIBUICAO || undefined };
     if (extra) for (var k in extra) corpo[k] = extra[k];
     return api('salvar-passo', corpo);
@@ -593,11 +595,11 @@
   async function conversa() {
     // abertura: o rodízio define o vendedor antes da primeira mensagem
     var forcar = (location.hash.match(/consultora=([a-z0-9_-]+)/) || [])[1];
-    var r0 = await api('salvar-passo', { distribuir: true, forcar: forcar || undefined }, 8000);
+    var r0 = await api('salvar-passo', { session_id: L.session_id, distribuir: true, forcar: forcar || undefined }, 8000);
     if (r0 && r0.ok && r0.consultora) { V = r0.consultora; DISTRIBUICAO = r0.motivo || ''; if (r0.expediente) EXP = r0.expediente; }
     mostrarVendedor();
 
-    TOTAL = L.produto_nome ? 4 : 5; passo(1);
+    TOTAL = L.produto_nome ? 5 : 6; passo(1);
     var abertura = 'Oi! ' + souEu() + ' Vou anotar algumas informações do seu pedido para já continuar o atendimento com você pelo WhatsApp.';
     if (L.produto_nome) abertura += ' Vi que você tem interesse em <b>' + esc(L.produto_nome) + '</b>.';
     if (!EXP.aberto) { var volta = EXP.volta || 'no próximo dia útil'; abertura += '<span class="fora-exp">🌙 Agora estamos fora do expediente, mas pode deixar tudo por aqui. <b>' + esc(volta.charAt(0).toUpperCase() + volta.slice(1)) + '</b>, eu continuo com você.</span>'; }
@@ -625,9 +627,8 @@
     // 3. e-mail
     await bot(jaCliente + 'Qual é o seu <b>e-mail</b>?');
     a = await perguntar({ texto: true, rotulo: 'E-mail', tipo: 'email', modo: 'email', auto: 'email', dica: 'nome@empresa.com.br',
-      validar: function (v) { return /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(v) ? '' : 'Confira o e-mail, por exemplo nome@empresa.com.br.'; },
-      opcoes: [{ rotulo: 'Prefiro não informar', valor: '', pula: true, leve: true }] });
-    L.email = a.pulou ? '' : a.valor.toLowerCase();
+      validar: function (v) { return /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(v) ? '' : 'Confira o e-mail, por exemplo nome@empresa.com.br.'; } });
+    L.email = a.valor.toLowerCase();
     gravar(3); passo(4);
 
     // 4. empresa
@@ -635,6 +636,17 @@
     a = await perguntar({ texto: true, rotulo: 'Empresa', auto: 'organization', dica: 'Nome da empresa', opcoes: [{ rotulo: 'Sou pessoa física', valor: '', pula: true, leve: true }] });
     if (a.pulou) { L.pessoa_fisica = true; L.empresa = ''; } else L.empresa = a.valor.replace(/\s+/g, ' ').trim();
     gravar(4); passo(5);
+
+    // 5. CNPJ: opcional, e só para quem informou empresa
+    if (!L.pessoa_fisica) {
+      await bot('Qual é o <b>CNPJ</b> da empresa? Se não tiver em mãos agora, pode informar depois.');
+      a = await perguntar({ texto: true, rotulo: 'CNPJ (opcional)', modo: 'numeric', dica: '00.000.000/0000-00', mascara: fmtCnpj,
+        validar: function (v) { return cnpjValido(v) ? '' : 'Confira o CNPJ: são 14 números. Se preferir, toque em "Informar depois".'; },
+        opcoes: [{ rotulo: 'Informar depois', valor: '', pula: true, leve: true }, { rotulo: 'Sou pessoa física', valor: 'pf', pula: true, leve: true }] });
+      if (a.valor === 'pf') { L.pessoa_fisica = true; L.empresa_digitada = L.empresa; L.empresa = ''; }
+      else if (!a.pulou) L.cnpj = soDigitos(a.valor);
+    }
+    gravar(5); passo(6);
 
     // 5. produto (só quando a pessoa não veio de uma página de produto)
     if (!L.produto_nome) {
@@ -645,7 +657,7 @@
 
     // fim: grava completo, cria no Pipedrive e mostra o WhatsApp do vendedor
     var espe = balao('<span class="typing"><i></i><i></i><i></i></span>');
-    var rf = await api('finalizar-lead', { session_id: L.session_id, nome: L.nome, whatsapp: L.whatsapp, ddi: L.ddi, email: L.email || null, empresa: L.empresa || '',
+    var rf = await api('finalizar-lead', { session_id: L.session_id, nome: L.nome, whatsapp: L.whatsapp, ddi: L.ddi, email: L.email || null, empresa: L.empresa || '', cnpj: L.cnpj || undefined, empresa_digitada: L.empresa_digitada || undefined,
       pessoa_fisica: L.pessoa_fisica, produto_id: L.produto_id || null, produto_nome: L.produto_nome || null, produto_deduzido: L.produto_deduzido,
       origem_url: L.origem_url, origem_pagina: L.origem_pagina, utms: L.utms }, 20000);
     if (rf && rf.consultora) { V = Object.assign({}, V, rf.consultora); if (rf.expediente) EXP = rf.expediente; mostrarVendedor(); }

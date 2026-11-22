@@ -614,7 +614,7 @@
     await bot(abertura, 900);
     /* Cada passo: n (número no contador), pular (quando não se aplica), voltar (rótulo do botão que traz de volta a ele),
        pergunta (texto), campo (como responder) e guardar (o que fazer com a resposta). */
-    var jaCliente = '';
+    var CONHECIDO = null, outraEmpresa = false;   // pessoa que já está na base: quem é e em que empresa está
     var PASSOS = [
       { n: 1, voltar: 'Corrigir meu nome',
         pergunta: function (de) { return de ? 'Sem problema. Qual é o seu <b>nome e sobrenome</b>?' : 'Para começar, qual é o seu <b>nome e sobrenome</b>?'; },
@@ -626,25 +626,39 @@
         campo: function () { return { texto: true, rotulo: 'WhatsApp com DDD', tipo: 'tel', modo: 'tel', auto: 'tel-national', dica: '(11) 99999-9999', mascara: fmtFone,
           validar: function (v) { var d = soDigitos(v); return (d.length === 10 || d.length === 11) && d.charAt(0) !== '0' ? '' : 'Confira o número: DDD mais o telefone, por exemplo (11) 99999-9999.'; } }; },
         guardar: async function (a) {
-          L.whatsapp = soDigitos(a.valor); jaCliente = '';
+          L.whatsapp = soDigitos(a.valor);
           var rv = await gravar(2, { verificar_conta: true });
+          CONHECIDO = rv && rv.ok && rv.conhecido ? rv.conhecido : null; outraEmpresa = false;
           if (rv && rv.ok && rv.trocou && rv.consultora) {
-            V = rv.consultora; DISTRIBUICAO = rv.motivo || DISTRIBUICAO; mostrarVendedor();
-            jaCliente = 'Vi que você já é nosso cliente. ' + (V.artigo === 'o' ? 'O ' : 'A ') + esc(V.nome) + ', que já atende você, continua cuidando do seu pedido. ';
+            // quem abriu o chat avisa, e o vendedor que já atende a pessoa assume a conversa
+            var quemAbriu = V.nome, novo = rv.consultora, oa = novo.artigo === 'o' ? 'o' : 'a';
+            await bot((CONHECIDO && CONHECIDO.cliente ? 'Vi que você já é nosso cliente e é atendido pel' + oa : 'Vi que você já tem um atendimento conosco com ' + oa) +
+              ' <b>' + esc(novo.nome) + '</b>. Vou passar o seu pedido para el' + (oa === 'o' ? 'e' : 'a') + ' continuar com você.');
+            V = novo; DISTRIBUICAO = rv.motivo || DISTRIBUICAO; mostrarVendedor();
+            await bot('Oi, ' + esc(primeiroNome(L.nome)) + '! Aqui é ' + oa + ' <b>' + esc(V.nome) + '</b>. Que bom falar com você de novo. ' +
+              (quemAbriu ? (/a$/i.test(quemAbriu) ? 'A ' : 'O ') + esc(quemAbriu) + ' me passou o que você já informou, sigo daqui.' : 'Já recebi o que você informou, sigo daqui.'));
           }
           return true;   // já gravou
         } },
       { n: 3, voltar: 'Corrigir o e-mail',
-        pergunta: function (de) { var t = (de ? 'Sem problema. ' : jaCliente) + 'Qual é o seu <b>e-mail</b>?'; jaCliente = ''; return t; },
+        pergunta: function (de) { return (de ? 'Sem problema. ' : '') + 'Qual é o seu <b>e-mail</b>?'; },
         campo: function () { return { texto: true, rotulo: 'E-mail', tipo: 'email', modo: 'email', auto: 'email', dica: 'nome@empresa.com.br',
           validar: function (v) { return /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(v) ? '' : 'Confira o e-mail, por exemplo nome@empresa.com.br.'; } }; },
         guardar: function (a) { L.email = a.valor.toLowerCase(); } },
       { n: 4, voltar: 'Corrigir a empresa',
-        pergunta: function (de) { return (de ? 'Sem problema. ' : '') + 'Qual é o nome da sua <b>empresa</b>?'; },
-        campo: function () { return { texto: true, rotulo: 'Empresa', auto: 'organization', dica: 'Nome da empresa', opcoes: [{ rotulo: 'Sou pessoa física', valor: '', pula: true, leve: true }] }; },
-        guardar: function (a) { L.cnpj = ''; L.empresa_digitada = ''; if (a.pulou) { L.pessoa_fisica = true; L.empresa = ''; } else { L.pessoa_fisica = false; L.empresa = a.valor.replace(/\s+/g, ' ').trim(); } } },
+        // quem já está na base só confirma a empresa; os outros escrevem o nome
+        confirma: function () { return !!(CONHECIDO && CONHECIDO.empresa) && !outraEmpresa; },
+        pergunta: function (de) { if (de) outraEmpresa = false; return this.confirma() ? 'Você continua na <b>' + esc(CONHECIDO.empresa) + '</b>?' : (de ? 'Sem problema. ' : '') + 'Qual é o nome da sua <b>empresa</b>?'; },
+        campo: function () { return this.confirma() ? { texto: false, opcoes: [{ rotulo: 'Sim', valor: 'sim' }, { rotulo: 'Não, é outra empresa', valor: 'nao', leve: true }] }
+          : { texto: true, rotulo: 'Empresa', auto: 'organization', dica: 'Nome da empresa', opcoes: [{ rotulo: 'Sou pessoa física', valor: '', pula: true, leve: true }] }; },
+        guardar: function (a) {
+          L.cnpj = ''; L.empresa_digitada = ''; L.empresa_confirmada = false;
+          if (a.valor === 'nao' && this.confirma()) { outraEmpresa = true; return 'repetir'; }
+          if (a.valor === 'sim' && this.confirma()) { L.pessoa_fisica = false; L.empresa = CONHECIDO.empresa; L.empresa_confirmada = true; return; }
+          if (a.pulou) { L.pessoa_fisica = true; L.empresa = ''; } else { L.pessoa_fisica = false; L.empresa = a.valor.replace(/\s+/g, ' ').trim(); }
+        } },
       // CNPJ: opcional, e só para quem informou empresa
-      { n: 5, voltar: 'Corrigir o CNPJ', pular: function () { return L.pessoa_fisica; },
+      { n: 5, voltar: 'Corrigir o CNPJ', pular: function () { return L.pessoa_fisica || L.empresa_confirmada; },
         pergunta: function (de) { return (de ? 'Sem problema. ' : '') + 'Qual é o <b>CNPJ</b> da empresa? Se não tiver em mãos agora, pode informar depois.'; },
         campo: function () { return { texto: true, rotulo: 'CNPJ (opcional)', modo: 'numeric', dica: '00.000.000/0000-00', mascara: fmtCnpj,
           validar: function (v) { return cnpjValido(v) ? '' : 'Confira o CNPJ: são 14 números. Se preferir, toque em "Informar depois".'; },
@@ -667,8 +681,9 @@
       var a = await perguntar(o);
       if (a.voltar) { i = lista.indexOf(anterior); deVolta = true; continue; }
       deVolta = false;
-      var jaGravou = await p.guardar(a);
-      if (!jaGravou) gravar(p.n);
+      var feito = await p.guardar(a);
+      if (feito === 'repetir') continue;
+      if (!feito) gravar(p.n);
       i = ativos().indexOf(p) + 1;
     }
 

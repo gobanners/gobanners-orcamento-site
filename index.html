@@ -4,58 +4,430 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#182B5C">
+<meta name="theme-color" content="#FFFFFF">
 <title>Orçamento GoBanners</title>
 <link rel="icon" type="image/png" href="https://gobanners.com.br/wp-content/uploads/2023/11/Favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap">
 <style>
-  :root { --navy:#182B5C; --blue:#1F3C88; --red:#E53935; --bg:#EEF2F8; --line:#D6DEEA; --text:#17171D; --muted:#5C6470; --green:#25D366; }
-  * { box-sizing:border-box; }
-  html, body { height:100%; margin:0; }
-  body { font:16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color:var(--text); background:var(--bg); }
-  .app { height:100%; height:100dvh; max-width:560px; margin:0 auto; display:flex; flex-direction:column; background:#fff; }
-  @media (min-width:600px) { body { padding:16px 0; } .app { height:calc(100dvh - 32px); border-radius:18px; overflow:hidden; box-shadow:0 20px 50px rgba(24,43,92,.18); } }
-  .topo { background:var(--navy); color:#fff; padding:12px 16px; display:flex; align-items:center; gap:12px; }
-  .topo img { width:44px; height:44px; border-radius:50%; object-fit:cover; background:#fff; flex:none; }
-  .topo .n { font-weight:700; font-size:17px; line-height:1.2; }
-  .topo .s { font-size:13px; opacity:.85; }
-  .topo .s::before { content:""; display:inline-block; width:8px; height:8px; border-radius:50%; background:#5EE08A; margin-right:6px; }
-  .topo .s.fora::before { background:#FFC857; }
-  .msgs { flex:1; overflow-y:auto; padding:16px 14px 8px; background:var(--bg); scroll-behavior:smooth; }
-  .linha { display:flex; gap:8px; margin-bottom:10px; align-items:flex-end; }
-  .linha.eu { justify-content:flex-end; }
-  .linha img { width:30px; height:30px; border-radius:50%; object-fit:cover; background:#fff; flex:none; }
-  .balao { max-width:82%; padding:10px 14px; border-radius:18px; background:#fff; border:1px solid var(--line); border-bottom-left-radius:6px; white-space:pre-wrap; overflow-wrap:anywhere; }
-  .eu .balao { background:var(--navy); color:#fff; border-color:var(--navy); border-radius:18px; border-bottom-right-radius:6px; }
-  .digitando span { display:inline-block; width:7px; height:7px; margin:0 2px; border-radius:50%; background:#9AA6BA; animation:pula 1s infinite; }
-  .digitando span:nth-child(2) { animation-delay:.15s; } .digitando span:nth-child(3) { animation-delay:.3s; }
-  @keyframes pula { 0%,60%,100% { transform:none; opacity:.5; } 30% { transform:translateY(-4px); opacity:1; } }
-  .opcoes { display:flex; flex-wrap:wrap; gap:8px; margin:2px 0 12px 38px; }
-  .opcoes button { font:inherit; font-weight:600; color:var(--navy); background:#fff; border:1.5px solid var(--navy); border-radius:999px; padding:8px 14px; cursor:pointer; }
-  .opcoes button:hover, .opcoes button:focus-visible { background:var(--navy); color:#fff; outline:none; }
-  .opcoes button.leve { border-color:var(--line); color:var(--muted); font-weight:500; }
-  .wa { display:inline-flex; align-items:center; gap:10px; margin:2px 0 14px 38px; background:var(--green); color:#fff; text-decoration:none; font-weight:700; padding:12px 20px; border-radius:999px; box-shadow:0 8px 20px rgba(37,211,102,.35); }
-  .wa svg { width:22px; height:22px; }
-  .barra { border-top:1px solid var(--line); padding:10px 12px calc(10px + env(safe-area-inset-bottom)); display:flex; gap:8px; background:#fff; }
-  .barra input { flex:1; min-width:0; font:inherit; padding:12px 14px; border:1.5px solid var(--line); border-radius:999px; outline:none; }
-  .barra input:focus { border-color:var(--blue); }
-  .barra button { flex:none; width:46px; height:46px; border-radius:50%; border:0; background:var(--navy); color:#fff; cursor:pointer; display:grid; place-items:center; }
-  .barra button:disabled, .barra input:disabled { opacity:.45; cursor:default; }
-  .erro { color:#B42318; font-size:13px; margin:-4px 0 8px 38px; }
-  .rodape { text-align:center; font-size:11.5px; color:var(--muted); padding:0 12px 8px; background:#fff; }
+  :root {
+    --navy: #182B5C;
+    --blue: #1F3C88;
+    --coral: #E53935;
+    --yellow: #FFB100;
+    --bg: #FFFFFF;
+    --surface: #FFFFFF;
+    --surface-2: #E7F3FF;
+    --line: #D3E2F2;
+    --text: #17171D;
+    --muted: #5C6470;
+    --bot-bubble: #FFFFFF;
+    --bot-text: #17171D;
+    --user-bubble: #182B5C;
+    --user-text: #FFFFFF;
+    --input-bg: #FFFFFF;
+    --focus: #1F3C88;
+    --wall: #E7F3FF;
+    --wall-dot: #C9DDF1;
+    --shadow: 0 1px 2px rgba(20,26,51,.06), 0 6px 20px rgba(20,26,51,.06);
+    --font-display: "Baloo 2", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --font-body: "Baloo 2", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  }
+  :root { color-scheme: light; }
+
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+  * { box-sizing: border-box; }
+  button { font: inherit; }
+
+  .app {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    max-width: 760px;
+    margin: 0 auto;
+    background: var(--bg);
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 5;
+    background: var(--surface);
+    color: var(--text);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 16px;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+    flex: 1 1 auto; min-width: 0;
+  }
+  .brand img { width: 46px; height: 46px; display: block; flex: none; object-fit: contain; }
+  .brand .t1 {
+    font-family: var(--font-display); font-weight: 700; font-size: 18px; line-height: 1.1;
+    color: var(--text);
+  }
+  .brand .t2 { font-size: 13px; color: var(--muted); line-height: 1.2; font-weight: 500; }
+  .stepinfo {
+    font-size: 13px; color: var(--muted); font-weight: 600;
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .stepinfo b { color: var(--blue); font-weight: 700; }
+  .fora-exp { display: block; margin-top: 10px; padding: 9px 12px; border-radius: 12px; background: #FFF6DB; border: 1px solid #F5D98B; color: #5B4300; font-size: .95em; line-height: 1.45; }
+  .stepinfo[hidden] { display: none; }
+  @media (max-width: 430px) {
+    .brand .t1 { font-size: 16px; }
+    .brand .t2 { font-size: 12px; }
+    .brand img { width: 40px; height: 40px; }
+    .stepinfo { font-size: 12px; }
+    .topbar-row { gap: 8px; padding: 8px 12px; }
+  }
+  /* ---------- Prova social (avaliações) ---------- */
+  .proof {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 8px;
+    padding: 8px 12px; background: var(--surface); border-bottom: 1px solid var(--line);
+    font-size: 12.5px; color: var(--muted); font-weight: 500; line-height: 1.2;
+  }
+  .proof .pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--surface-2); border-radius: 999px; padding: 4px 10px; white-space: nowrap;
+  }
+  .proof .pill.google { background: #FFF6DE; }
+  .proof .stars { color: var(--yellow); letter-spacing: -1px; font-size: 13px; }
+  .proof b { color: var(--text); font-weight: 700; }
+  @media (max-width: 380px) { .proof { font-size: 11.5px; gap: 4px 6px; } .proof .pill { padding: 3px 8px; } }
+
+  .track { height: 4px; background: var(--surface-2); }
+  .track .fill {
+    height: 100%; width: 0;
+    background: var(--yellow);
+    transition: width .35s ease;
+  }
+  @media (prefers-reduced-motion: reduce) { .track .fill { transition: none; } }
+
+  /* ---------- Chat ---------- */
+  .chat {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 20px 16px 12px;
+    background-color: var(--wall);
+    background-image: radial-gradient(var(--wall-dot) 1px, transparent 1.2px);
+    background-size: 18px 18px;
+    display: flex; flex-direction: column; gap: 10px;
+    scroll-behavior: smooth;
+  }
+  @media (prefers-reduced-motion: reduce) { .chat { scroll-behavior: auto; } }
+
+  .row { display: flex; gap: 10px; align-items: flex-start; max-width: 100%; }
+  .row.bot { justify-content: flex-start; }
+  .row.user { justify-content: flex-end; }
+  .avatar {
+    width: 44px; height: 44px; border-radius: 50%; flex: none;
+    background: var(--surface); color: #fff; border: 1px solid var(--line);
+    display: grid; place-items: center; overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .avatar img { width: 32px; height: 32px; object-fit: contain; }
+  .avatar.foto img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; }
+  .brand img.foto { border-radius: 50%; object-fit: cover; border: 2px solid var(--yellow); }
+
+  .bubble {
+    position: relative;
+    max-width: min(80%, 560px);
+    padding: 10px 14px;
+    border-radius: 14px;
+    line-height: 1.5;
+    box-shadow: var(--shadow);
+    animation: pop .22s ease-out;
+    overflow-wrap: anywhere;
+  }
+  @media (prefers-reduced-motion: reduce) { .bubble { animation: none; } }
+  @keyframes pop { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .row.bot .bubble { background: var(--bot-bubble); color: var(--bot-text); border-top-left-radius: 4px; }
+  .row.user .bubble { background: var(--user-bubble); color: var(--user-text); border-top-right-radius: 4px; font-weight: 500; }
+  .row.bot .bubble::before, .row.user .bubble::before {
+    content: ''; position: absolute; top: 0; width: 0; height: 0;
+    border-style: solid;
+  }
+  .row.bot .bubble::before { left: -8px; border-width: 0 8px 10px 0; border-color: transparent var(--bot-bubble) transparent transparent; }
+  .row.user .bubble::before { right: -8px; border-width: 0 0 10px 8px; border-color: transparent transparent transparent var(--user-bubble); }
+  .bubble b { font-weight: 700; }
+
+  .typing { display: inline-flex; gap: 4px; padding: 4px 2px; }
+  .typing i {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--muted); opacity: .5;
+    animation: blink 1s infinite;
+  }
+  .typing i:nth-child(2) { animation-delay: .15s; }
+  .typing i:nth-child(3) { animation-delay: .3s; }
+  @keyframes blink { 0%,100% { opacity: .25; } 50% { opacity: .9; } }
+
+  /* ---------- Summary card ---------- */
+  .card {
+    align-self: stretch;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+    margin: 6px 0 4px 46px;
+    box-shadow: var(--shadow);
+  }
+  @media (max-width: 480px) { .card { margin-left: 0; } }
+  .card-head {
+    background: var(--navy); color: #fff;
+    padding: 12px 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .card-head h3 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 18px; line-height: 1.2; color: #fff; }
+  .card-head span { font-size: 12px; opacity: .85; }
+  .pill {
+    display: inline-block; padding: 3px 10px; border-radius: 999px;
+    font-size: 12px; font-weight: 600; letter-spacing: .3px;
+    background: var(--yellow); color: #17171D;
+  }
+  .pill.p4 { background: var(--surface-2); color: var(--text); }
+  .card dl {
+    margin: 0; padding: 12px 16px;
+    display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px;
+    font-size: 14px;
+  }
+  .card dt { color: var(--muted); font-weight: 500; }
+  .card dd { margin: 0; font-weight: 500; overflow-wrap: anywhere; }
+  .card .signals {
+    border-top: 1px solid var(--line);
+    padding: 12px 16px; font-size: 13px; color: var(--muted);
+  }
+  .card .signals b { color: var(--text); font-weight: 600; }
+  .card .signals ul { margin: 6px 0 0; padding-left: 18px; }
+  .card .signals li { margin: 2px 0; }
+
+  /* ---------- Dock (input area) ---------- */
+  .dock {
+    flex: none;
+    padding: 10px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    background: var(--bg);
+    border-top: 1px solid var(--line);
+  }
+  .dock-inner { display: flex; flex-direction: column; gap: 8px; }
+  .label {
+    font-size: 13px; font-weight: 600; color: var(--muted);
+    padding-left: 4px;
+  }
+  .field {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .inpwrap {
+    flex: 1 1 auto; min-width: 0;
+    display: flex; align-items: center; gap: 8px;
+    border: 2px solid var(--line);
+    background: var(--input-bg);
+    border-radius: 24px;
+    padding: 0 18px;
+    box-shadow: var(--shadow);
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .inpwrap:focus-within { border-color: var(--focus); box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 22%, transparent); }
+  .inpwrap .prefix {
+    flex: none; display: inline-flex; align-items: center; gap: 6px;
+    font-weight: 600; color: var(--text); font-size: 16px;
+    padding-right: 10px; border-right: 1px solid var(--line);
+  }
+  .inpwrap .prefix .flag { font-size: 20px; line-height: 1; }
+  .ddi {
+    flex: none; position: relative; display: inline-flex; align-items: center; gap: 4px;
+    padding-right: 10px; border-right: 1px solid var(--line); cursor: pointer;
+    font-weight: 600; color: var(--text); font-size: 16px; white-space: nowrap;
+  }
+  .ddi .flag { font-size: 20px; line-height: 1; }
+  .ddi .chev { width: 14px; height: 14px; color: var(--muted); }
+  .ddi select {
+    position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;
+    font-size: 16px; /* evita zoom no iOS */
+  }
+  .ddi:focus-within { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 8px; }
+  .inpwrap .wa { flex: none; width: 22px; height: 22px; color: #25D366; }
+  .field input {
+    flex: 1 1 auto; min-width: 0; width: 100%;
+    border: 0; outline: 0; background: transparent;
+    font: inherit; font-size: 17px; color: var(--text);
+    padding: 13px 0;
+  }
+  .field input::placeholder { color: var(--muted); opacity: .8; }
+  .send {
+    flex: none; width: 50px; height: 50px; border-radius: 50%;
+    border: 0; background: var(--coral); color: #fff;
+    display: grid; place-items: center; cursor: pointer;
+    box-shadow: 0 4px 12px rgba(229,57,53,.3);
+    transition: transform .1s, opacity .15s, box-shadow .15s;
+  }
+  .send:hover { transform: scale(1.05); }
+  .send:disabled { opacity: .35; cursor: default; transform: none; box-shadow: none; }
+  .send:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .send svg { width: 22px; height: 22px; margin-left: 2px; }
+  .hint { font-size: 12px; color: var(--muted); padding-left: 4px; min-height: 1.2em; }
+  .hint.err { color: var(--coral); font-weight: 500; }
+
+  .choices { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-start; }
+  .row.quick { margin-top: -2px; }
+  .row.quick .avatar.espaco { visibility: hidden; box-shadow: none; }
+  .row.quick .choices { flex: 1 1 auto; }
+  .choice {
+    border: 2px solid var(--blue); background: var(--surface); color: var(--blue);
+    border-radius: 999px; padding: 9px 18px; font-weight: 700; font-size: 15px;
+    cursor: pointer; box-shadow: var(--shadow);
+    transition: background .12s, color .12s, transform .1s;
+  }
+  .choice:hover { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .choice:active { transform: scale(.97); }
+  .choice:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .choice.quiet { border-color: rgba(31, 60, 136, .35); color: var(--text); background: var(--surface); }
+  .choice.quiet:hover { background: var(--surface-2); color: var(--text); }
+  /* "corrigir a resposta anterior": discreto, mas legível (texto escuro, borda azul suave, tamanho menor) */
+  .dock .choices { margin-top: 8px; }
+  .dock .choice.quiet { color: var(--text); border-color: rgba(31, 60, 136, .35); font-size: 13.5px; padding: 7px 14px; font-weight: 600; }
+  .dock .choice.quiet:hover { border-color: var(--blue); color: var(--blue); }
+
+  .cta {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    background: #25D366; color: #06281A; text-decoration: none;
+    border-radius: 999px; padding: 14px 22px; font-weight: 600; font-size: 16px;
+    box-shadow: var(--shadow);
+  }
+  .cta svg { width: 22px; height: 22px; }
+  .cta.mail { background: var(--surface-2); color: var(--text); }
+  .restart {
+    background: none; border: 0; color: var(--muted); cursor: pointer;
+    font-size: 13px; text-decoration: underline; padding: 6px;
+  }
+  .foot {
+    font-size: 11px; color: var(--muted); text-align: center; line-height: 1.4;
+  }
+  .foot a { color: inherit; }
+  .legal {
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    font-size: 11.5px; color: var(--muted); text-align: center; padding: 8px 4px 0; line-height: 1.3;
+  }
+  .legal svg { width: 12px; height: 12px; flex: none; }
+  .legal a { color: var(--blue); font-weight: 600; }
+  .legal a.outro { display: inline-block; margin-top: 6px; font-size: 13.5px; font-weight: 700; color: var(--blue); text-decoration: underline; text-underline-offset: 3px; padding: 4px 0; }
+  .proto {
+    font-size: 11px; color: var(--muted); text-align: center;
+    padding: 6px 16px 0; letter-spacing: .04em;
+  }
+
+  /* ---------- Tela cheia por cima do site: o × do site fica no canto; abre espaço no cabeçalho ---------- */
+  body.cheia .topbar-row { padding-right: 56px; }
+  body.cheia .gear { display: none; }
+
+  /* ---------- Modo embutido (iframe dentro do cartão do site) ---------- */
+  body.embed .topbar-row { display: none; }
+  body.embed .app { max-width: none; }
+  body.embed .chat { padding: 14px 12px 10px; }
+  body.embed .dock { padding: 8px 12px calc(10px + env(safe-area-inset-bottom, 0px)); }
+  body.embed .proto { display: none; }
+  .fechar {
+    position: fixed; top: 8px; right: 8px; z-index: 20;
+    width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line);
+    background: var(--surface); color: var(--text); cursor: pointer; display: none;
+    place-items: center; box-shadow: var(--shadow); font-size: 20px; line-height: 1;
+  }
+  body.embed.expandido .fechar { display: grid; }
+  .proto code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 11px; }
+
+  /* ---------- Painel de distribuição (protótipo) ---------- */
+  .gear[hidden] { display: none; }
+  .gear {
+    background: var(--surface-2); border: 0; color: var(--muted); width: 36px; height: 36px;
+    border-radius: 50%; display: grid; place-items: center; cursor: pointer; flex: none;
+  }
+  .gear:hover { color: var(--text); }
+  .gear:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .gear svg { width: 20px; height: 20px; }
+  .panel {
+    position: fixed; inset: 0; z-index: 20;
+    background: rgba(10,42,107,.45);
+    display: flex; align-items: flex-end; justify-content: center;
+    padding: 16px;
+  }
+  .panel-box {
+    width: 100%; max-width: 520px;
+    background: var(--surface); color: var(--text);
+    border-radius: 18px; box-shadow: var(--shadow);
+    padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .panel-box h2 { margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 700; line-height: 1.2; }
+  .panel-box p { margin: 0; font-size: 13px; color: var(--muted); }
+  .crow {
+    display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 12px;
+    padding: 10px 0; border-top: 1px solid var(--line);
+  }
+  .crow .nm { font-weight: 600; }
+  .crow .ph { font-size: 12px; color: var(--muted); }
+  .crow select { font: inherit; font-size: 14px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--input-bg); color: var(--text); }
+  .switch { position: relative; width: 48px; height: 28px; }
+  .switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .switch span {
+    position: absolute; inset: 0; border-radius: 999px; background: var(--line); cursor: pointer; transition: background .15s;
+  }
+  .switch span::after {
+    content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%;
+    background: #fff; transition: transform .15s; box-shadow: 0 1px 3px rgba(0,0,0,.3);
+  }
+  .switch input:checked + span { background: #25D366; }
+  .switch input:checked + span::after { transform: translateX(20px); }
+  .switch input:focus-visible + span { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .queue { font-size: 13px; color: var(--muted); }
+  .queue b { color: var(--text); }
+  .panel-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .btn {
+    border-radius: 999px; padding: 10px 18px; font-weight: 700; font-size: 14px; cursor: pointer;
+    border: 2px solid var(--blue); background: var(--blue); color: #fff;
+  }
+  .btn.ghost { background: transparent; color: var(--blue); }
+  .brand img { border-radius: 50%; }
+  .row.fim { margin-top: 2px; }
+  .dock:has(.dock-inner:empty) .dock-inner { display: none; }
 </style>
 </head>
 <body>
+
 <div class="app">
-  <div class="topo">
-    <img id="tFoto" src="https://gobanners.com.br/wp-content/uploads/2023/11/Favicon.png" alt="">
-    <div><div class="n" id="tNome">GoBanners</div><div class="s" id="tStatus">Online agora</div></div>
-  </div>
-  <div class="msgs" id="msgs" aria-live="polite"></div>
-  <form class="barra" id="barra" autocomplete="on">
-    <input id="campo" type="text" placeholder="Escreva aqui" disabled aria-label="Sua resposta">
-    <button id="enviar" type="submit" disabled aria-label="Enviar"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M3 20.5 21 12 3 3.5v6.6l11 1.9-11 1.9z"/></svg></button>
-  </form>
-  <div class="rodape">Seus dados são usados apenas para preparar o seu orçamento.</div>
+  <header class="topbar">
+    <div class="topbar-row">
+      <div class="brand" aria-label="GoBanners">
+        <img id="tFoto" src="https://gobanners.com.br/wp-content/uploads/2023/11/Favicon.png" alt="">
+        <div><div class="t1">Solicitar orçamento</div><div class="t2">Leva menos de 1 minuto</div></div>
+      </div>
+      <div class="stepinfo" id="stepinfo">Passo <b><span id="stepNow">1</span></b> de <span id="stepTotal">5</span></div>
+    </div>
+    <div class="track" aria-hidden="true"><div class="fill" id="fill"></div></div>
+    <div class="proof" aria-label="Sobre a GoBanners">
+      <span class="pill google"><b>+150 mil</b> clientes atendidos</span>
+      <span class="pill"><b>+12</b> anos de mercado</span>
+      <span class="pill"><b>Fabricação própria</b></span>
+      <span class="pill"><b>Entrega</b> para todo o Brasil</span>
+    </div>
+  </header>
+
+  <main class="chat" id="chat" aria-live="polite"></main>
+
+  <footer class="dock">
+    <div class="dock-inner" id="dock"></div>
+    <div class="legal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Sem spam. Seus dados são usados apenas para preparar o seu orçamento.</span></div>
+  </footer>
 </div>
 
 <script>
@@ -90,7 +462,7 @@
   ];
 
   var $ = function (s) { return document.querySelector(s); };
-  var msgs = $('#msgs'), campo = $('#campo'), botao = $('#enviar');
+  var chat = $('#chat'), dock = $('#dock');
   var qs = new URLSearchParams(location.search);
   var espera = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
@@ -131,14 +503,11 @@
 
   /* ---------- vendedor e expediente ---------- */
   var V = { id: null, nome: '', whatsapp: WHATS_PADRAO, foto: null, artigo: 'a' }, DISTRIBUICAO = '', EXP = { aberto: true, volta: null };
-  var souEu = function () { return V.nome ? 'Aqui é ' + (V.artigo === 'o' ? 'o ' : 'a ') + V.nome + ', da GoBanners.' : 'Aqui é a equipe da GoBanners.'; };
+  var souEu = function () { return V.nome ? 'Eu sou ' + (V.artigo === 'o' ? 'o ' : 'a ') + '<b>' + esc(V.nome) + '</b>, da GoBanners.' : 'Aqui é a equipe da GoBanners.'; };
   var obrigado = function () { return V.nome && V.artigo === 'o' ? 'Obrigado' : 'Obrigada'; };
-  function mostrarVendedor() {
-    $('#tNome').textContent = V.nome ? V.nome + ' · GoBanners' : 'GoBanners';
-    $('#tFoto').src = V.foto || LOGO;
-    var s = $('#tStatus'); s.classList.toggle('fora', !EXP.aberto);
-    s.textContent = EXP.aberto ? 'Online agora' : 'Retorno ' + (EXP.volta || 'no próximo dia útil');
-  }
+  function mostrarVendedor() { $('#tFoto').src = V.foto || LOGO; }
+  var TOTAL = 5;
+  function passo(n) { $('#stepNow').textContent = Math.min(n, TOTAL); $('#stepTotal').textContent = TOTAL; $('#fill').style.width = Math.round((n - 1) / TOTAL * 100) + '%'; }
 
   /* ---------- servidor ---------- */
   function api(nome, corpo, limite) {
@@ -155,42 +524,50 @@
   }
 
   /* ---------- conversa ---------- */
-  function rolar() { msgs.scrollTop = msgs.scrollHeight; }
+  var ENVIAR = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 20.5 21 12 3 3.5v6.6l11 1.9-11 1.9z"/></svg>';
+  function rolar() { chat.scrollTop = chat.scrollHeight; }
+  function avatar(vazio) { return '<div class="avatar' + (vazio ? ' espaco' : V.foto ? ' foto' : '') + '">' + (vazio ? '' : '<img src="' + esc(V.foto || LOGO) + '" alt="">') + '</div>'; }
   function balao(html, eu) {
-    var d = document.createElement('div'); d.className = 'linha' + (eu ? ' eu' : '');
-    d.innerHTML = (eu ? '' : '<img src="' + esc(V.foto || LOGO) + '" alt="">') + '<div class="balao">' + html + '</div>';
-    msgs.appendChild(d); rolar(); return d;
+    var d = document.createElement('div'); d.className = 'row ' + (eu ? 'user' : 'bot');
+    d.innerHTML = (eu ? '' : avatar()) + '<div class="bubble">' + html + '</div>';
+    chat.appendChild(d); rolar(); return d;
   }
   function bot(html, ms) {
-    var d = balao('<span class="digitando"><span></span><span></span><span></span></span>');
-    return espera(ms == null ? 700 : ms).then(function () { d.querySelector('.balao').innerHTML = html; rolar(); });
+    var d = balao('<span class="typing"><i></i><i></i><i></i></span>');
+    return espera(ms == null ? 700 : ms).then(function () { d.querySelector('.bubble').innerHTML = html; rolar(); });
   }
   function eu(texto) { balao(esc(texto), true); }
   /** Espera a resposta: texto digitado (validado) ou um dos botões. Devolve { valor, rotulo, pulou }. */
   function perguntar(o) {
     return new Promise(function (resolver) {
-      var aberto = true;
-      campo.disabled = botao.disabled = !o.texto;
-      campo.value = ''; campo.type = o.tipo || 'text'; campo.inputMode = o.modo || 'text';
-      campo.setAttribute('autocomplete', o.auto || 'off'); campo.placeholder = o.texto ? (o.dica || 'Escreva aqui') : 'Escolha uma opção acima';
-      campo.oninput = o.mascara ? function () { campo.value = o.mascara(campo.value); } : null;
-      var fim = function (r) { if (!aberto) return; aberto = false; campo.disabled = botao.disabled = true; campo.oninput = null; $('#barra').onsubmit = null; msgs.querySelectorAll('.opcoes, .erro').forEach(function (e) { e.remove(); }); resolver(r); };
+      var aberto = true, campo = null, quick = null;
+      var fim = function (r) { if (!aberto) return; aberto = false; dock.innerHTML = ''; if (quick) quick.remove(); resolver(r); };
       if (o.opcoes && o.opcoes.length) {
-        var box = document.createElement('div'); box.className = 'opcoes';
+        quick = document.createElement('div'); quick.className = 'row bot quick'; quick.innerHTML = avatar(true) + '<div class="choices"></div>';
         o.opcoes.forEach(function (op) {
-          var b = document.createElement('button'); b.type = 'button'; b.textContent = op.rotulo; if (op.leve) b.className = 'leve';
+          var b = document.createElement('button'); b.type = 'button'; b.textContent = op.rotulo; b.className = 'choice' + (op.leve ? ' quiet' : '');
           b.addEventListener('click', function () { eu(op.rotulo); fim({ valor: op.valor, rotulo: op.rotulo, pulou: !!op.pula }); });
-          box.appendChild(b);
+          quick.querySelector('.choices').appendChild(b);
         });
-        msgs.appendChild(box); rolar();
+        chat.appendChild(quick); rolar();
       }
-      $('#barra').onsubmit = function (ev) {
-        ev.preventDefault(); if (!o.texto) return;
+      dock.innerHTML = '';
+      if (!o.texto) return;
+      var f = document.createElement('form'); f.className = 'dock-inner'; f.noValidate = true; f.autocomplete = 'on';
+      f.innerHTML = '<label class="label" for="campo">' + esc(o.rotulo || 'Sua resposta') + '</label><div class="field"><div class="inpwrap">' +
+        (o.tipo === 'tel' ? '<span class="prefix"><span class="flag" aria-hidden="true">🇧🇷</span>+55</span>' : '') +
+        '<input id="campo"></div><button class="send" type="submit" disabled aria-label="Enviar">' + ENVIAR + '</button></div><div class="hint" id="dica"></div>';
+      dock.appendChild(f);
+      campo = f.querySelector('input'); var botao = f.querySelector('.send'), dica = f.querySelector('.hint');
+      campo.type = o.tipo || 'text'; campo.inputMode = o.modo || 'text'; campo.setAttribute('autocomplete', o.auto || 'off'); campo.placeholder = o.dica || 'Escreva aqui';
+      campo.addEventListener('input', function () { if (o.mascara) campo.value = o.mascara(campo.value); botao.disabled = !campo.value.trim(); dica.textContent = ''; dica.className = 'hint'; });
+      f.addEventListener('submit', function (ev) {
+        ev.preventDefault();
         var v = campo.value.trim(); var falha = o.validar ? o.validar(v) : (v ? '' : 'Escreva a resposta para continuar.');
-        if (falha) { msgs.querySelectorAll('.erro').forEach(function (e) { e.remove(); }); var e = document.createElement('div'); e.className = 'erro'; e.textContent = falha; msgs.appendChild(e); rolar(); return; }
+        if (falha) { dica.textContent = falha; dica.className = 'hint err'; return; }
         eu(v); fim({ valor: v, rotulo: v });
-      };
-      if (o.texto && window.matchMedia('(min-width:600px)').matches) campo.focus();
+      });
+      if (window.matchMedia('(min-width:600px)').matches) campo.focus();
     });
   }
 
@@ -202,23 +579,25 @@
     if (r0 && r0.ok && r0.consultora) { V = r0.consultora; DISTRIBUICAO = r0.motivo || ''; if (r0.expediente) EXP = r0.expediente; }
     mostrarVendedor();
 
-    var abertura = 'Oi! ' + souEu() + ' ';
-    if (!EXP.aberto) abertura += 'Nosso atendimento retorna ' + (EXP.volta || 'no próximo dia útil') + ', e o seu pedido já fica registrado comigo. ';
-    if (L.produto_nome) abertura += 'Vi que você tem interesse em <b>' + esc(L.produto_nome) + '</b>. ';
-    abertura += 'Para preparar o seu orçamento, qual é o seu <b>nome e sobrenome</b>?';
+    TOTAL = L.produto_nome ? 4 : 5; passo(1);
+    var abertura = 'Oi! ' + souEu() + ' Vou anotar algumas informações do seu pedido para já continuar o atendimento com você pelo WhatsApp.';
+    if (L.produto_nome) abertura += ' Vi que você tem interesse em <b>' + esc(L.produto_nome) + '</b>.';
+    if (!EXP.aberto) { var volta = EXP.volta || 'no próximo dia útil'; abertura += '<span class="fora-exp">🌙 Agora estamos fora do expediente, mas pode deixar tudo por aqui. <b>' + esc(volta.charAt(0).toUpperCase() + volta.slice(1)) + '</b>, eu continuo com você.</span>'; }
     await bot(abertura, 900);
+    await bot('Para começar, qual é o seu <b>nome e sobrenome</b>?', 600);
 
     // 1. nome
-    var a = await perguntar({ texto: true, auto: 'name', dica: 'Nome e sobrenome', validar: function (v) { return v.replace(/[^A-Za-zÀ-ÿ]/g, '').length >= 2 ? '' : 'Escreva o seu nome para continuar.'; } });
+    var a = await perguntar({ texto: true, rotulo: 'Nome completo', auto: 'name', dica: 'Seu nome e sobrenome', validar: function (v) { return v.replace(/[^A-Za-zÀ-ÿ]/g, '').length >= 2 ? '' : 'Escreva o seu nome para continuar.'; } });
     L.nome = /[a-zà-ÿ]/.test(a.valor) && /[A-ZÀ-Ý]/.test(a.valor) ? a.valor.replace(/\s+/g, ' ').trim() : capitalizar(a.valor);
-    gravar(1);
+    gravar(1); passo(2);
 
     // 2. WhatsApp (aqui o lead passa a contar no rodízio; e se a pessoa já é cliente, volta para quem já a atende)
     await bot('Prazer, ' + esc(primeiroNome(L.nome)) + '. Qual é o seu <b>WhatsApp com DDD</b>?');
-    a = await perguntar({ texto: true, tipo: 'tel', modo: 'tel', auto: 'tel-national', dica: '(11) 99999-9999', mascara: fmtFone,
+    a = await perguntar({ texto: true, rotulo: 'WhatsApp com DDD', tipo: 'tel', modo: 'tel', auto: 'tel-national', dica: '(11) 99999-9999', mascara: fmtFone,
       validar: function (v) { var d = soDigitos(v); return (d.length === 10 || d.length === 11) && d.charAt(0) !== '0' ? '' : 'Confira o número: DDD mais o telefone, por exemplo (11) 99999-9999.'; } });
     L.whatsapp = soDigitos(a.valor);
     var rv = await gravar(2, { verificar_conta: true });
+    passo(3);
     var jaCliente = '';
     if (rv && rv.ok && rv.trocou && rv.consultora) {
       V = rv.consultora; DISTRIBUICAO = rv.motivo || DISTRIBUICAO; mostrarVendedor();
@@ -227,17 +606,17 @@
 
     // 3. e-mail
     await bot(jaCliente + 'Qual é o seu <b>e-mail</b>?');
-    a = await perguntar({ texto: true, tipo: 'email', modo: 'email', auto: 'email', dica: 'nome@empresa.com.br',
+    a = await perguntar({ texto: true, rotulo: 'E-mail', tipo: 'email', modo: 'email', auto: 'email', dica: 'nome@empresa.com.br',
       validar: function (v) { return /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(v) ? '' : 'Confira o e-mail, por exemplo nome@empresa.com.br.'; },
       opcoes: [{ rotulo: 'Prefiro não informar', valor: '', pula: true, leve: true }] });
     L.email = a.pulou ? '' : a.valor.toLowerCase();
-    gravar(3);
+    gravar(3); passo(4);
 
     // 4. empresa
     await bot('Qual é o nome da sua <b>empresa</b>?');
-    a = await perguntar({ texto: true, auto: 'organization', dica: 'Nome da empresa', opcoes: [{ rotulo: 'Sou pessoa física', valor: '', pula: true, leve: true }] });
+    a = await perguntar({ texto: true, rotulo: 'Empresa', auto: 'organization', dica: 'Nome da empresa', opcoes: [{ rotulo: 'Sou pessoa física', valor: '', pula: true, leve: true }] });
     if (a.pulou) { L.pessoa_fisica = true; L.empresa = ''; } else L.empresa = a.valor.replace(/\s+/g, ' ').trim();
-    gravar(4);
+    gravar(4); passo(5);
 
     // 5. produto (só quando a pessoa não veio de uma página de produto)
     if (!L.produto_nome) {
@@ -247,20 +626,20 @@
     }
 
     // fim: grava completo, cria no Pipedrive e mostra o WhatsApp do vendedor
-    var espe = balao('<span class="digitando"><span></span><span></span><span></span></span>');
+    var espe = balao('<span class="typing"><i></i><i></i><i></i></span>');
     var rf = await api('finalizar-lead', { session_id: L.session_id, nome: L.nome, whatsapp: L.whatsapp, ddi: L.ddi, email: L.email || null, empresa: L.empresa || '',
       pessoa_fisica: L.pessoa_fisica, produto_id: L.produto_id || null, produto_nome: L.produto_nome || null, produto_deduzido: L.produto_deduzido,
       origem_url: L.origem_url, origem_pagina: L.origem_pagina, utms: L.utms }, 20000);
     if (rf && rf.consultora) { V = Object.assign({}, V, rf.consultora); if (rf.expediente) EXP = rf.expediente; mostrarVendedor(); }
     var pedido = L.produto_nome && L.produto_id !== 'outro' ? ' de ' + esc(L.produto_nome) : '';
-    espe.querySelector('.balao').innerHTML = obrigado() + ', ' + esc(primeiroNome(L.nome)) + '. Recebi o seu pedido de orçamento' + pedido + ' e vou falar com você pelo WhatsApp ' +
+    espe.querySelector('.bubble').innerHTML = obrigado() + ', ' + esc(primeiroNome(L.nome)) + '. Recebi o seu pedido de orçamento' + pedido + ' e vou falar com você pelo WhatsApp ' +
       (EXP.aberto ? 'em instantes' : (EXP.volta || 'no próximo dia útil')) + '. Se preferir, pode me chamar pelo botão abaixo.';
     var texto = 'Oi' + (V.nome ? ', ' + V.nome : '') + '! Sou ' + L.nome + (L.empresa ? ', da empresa ' + L.empresa : '') + '. Acabei de pedir um orçamento' + (L.produto_nome && L.produto_id !== 'outro' ? ' de ' + L.produto_nome : '') + ' pelo site.';
-    var link = document.createElement('a'); link.className = 'wa'; link.target = '_blank'; link.rel = 'noopener';
-    link.href = 'https://wa.me/' + soDigitos(V.whatsapp || WHATS_PADRAO) + '?text=' + encodeURIComponent(texto);
-    link.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>Chamar no WhatsApp';
-    msgs.appendChild(link); rolar();
-    campo.placeholder = 'Pedido enviado';
+    var fimRow = document.createElement('div'); fimRow.className = 'row bot quick fim';
+    fimRow.innerHTML = avatar(true) + '<a class="cta" target="_blank" rel="noopener" href="https://wa.me/' + soDigitos(V.whatsapp || WHATS_PADRAO) + '?text=' + encodeURIComponent(texto) + '">' +
+      '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>Chamar no WhatsApp</a>';
+    chat.appendChild(fimRow); rolar();
+    $('#stepinfo').hidden = true; $('#fill').style.width = '100%';
     try { if (window.parent !== window) window.parent.postMessage({ gobanners: 'lead', produto: L.produto_nome || '' }, '*'); } catch (e) { /* fora de iframe */ }
   }
   conversa().catch(function (e) {

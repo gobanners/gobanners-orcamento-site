@@ -170,8 +170,8 @@ body.so-meu .sc{display:none}
   <div class="tabs" id="tabs" hidden>
     <button class="tab on" data-p="leads">Leads</button>
     <button class="tab" data-p="numeros">Números</button>
-    <button class="tab" data-p="equipe">Equipe</button>
-    <button class="tab" data-p="deptos">Outros assuntos</button>
+    <button class="tab" data-p="equipe">Consultores</button>
+    <button class="tab" data-p="deptos">Departamentos</button>
   </div>
   <div class="sp"></div>
   <span class="who" id="who"></span>
@@ -200,7 +200,7 @@ body.so-meu .sc{display:none}
         <option value="completo">Completos (no Pipedrive)</option>
         <option value="parcial">Incompletos</option>
         <option value="resgatado">Resgatados (Caixa de Leads)</option>
-        <option value="contato">Outros assuntos</option>
+        <option value="contato">Contatos (pedido ou outro assunto)</option>
         <option value="repetido">Repetidos (mesmo cliente)</option>
         <option value="fora_catalogo">Fora do catálogo</option>
       </select>
@@ -709,7 +709,8 @@ async function renderConsultoras() {
 
 /* ---------- departamentos ---------- */
 function renderDeps() {
-  $('#tbDep').innerHTML = DEPS.map(d => `<tr data-dep="${d.id}">
+  // "pedido" é registro interno (cliente que já tem pedido fala com o próprio vendedor): não aparece para editar
+  $('#tbDep').innerHTML = DEPS.filter(d => d.id !== 'pedido').map(d => `<tr data-dep="${d.id}">
     <td><b>${esc(d.label)}</b></td>
     <td><input class="inp" data-f="pessoa" value="${esc(d.pessoa || '')}"></td>
     <td><input class="inp" data-f="whatsapp" value="${esc(d.whatsapp || '')}"></td>
@@ -720,6 +721,13 @@ function renderDeps() {
     const tr = b.closest('tr'); const up = {};
     tr.querySelectorAll('[data-f]').forEach(i => { up[i.dataset.f] = i.type === 'checkbox' ? i.checked : (i.value.trim() || null); });
     if (up.whatsapp) up.whatsapp = up.whatsapp.replace(/\D/g, '');
+    // trocou o responsável ou o e-mail: o usuário do Pipedrive e a foto são procurados de novo pela equipe cadastrada
+    const antes = DEPS.find(d => d.id === b.dataset.salvar) || {};
+    if ((up.pessoa || '') !== (antes.pessoa || '') || (up.email || '') !== (antes.email || '')) {
+      const novo = CONS.find(c => (up.email && c.email === up.email) || c.nome === up.pessoa);
+      up.pipedrive_user_id = novo ? novo.pipedrive_user_id : null; up.pipedrive_nome = novo ? null : up.pessoa;
+      up.foto_url = novo ? novo.foto_url : null; if (novo) up.artigo = novo.artigo;
+    }
     const { error } = await sb.from('departamentos').update(up).eq('id', b.dataset.salvar);
     b.textContent = error ? 'Erro' : 'Salvo ✓'; setTimeout(() => b.textContent = 'Salvar', 1500);
     if (error) alert('Não salvou: ' + error.message); else Object.assign(DEPS.find(d => d.id === b.dataset.salvar), up);

@@ -464,7 +464,7 @@
   'use strict';
   var FUNCS = 'https://shwjsxqfrogieqojarxr.supabase.co/functions/v1';
   var LOGO = 'https://gobanners.com.br/wp-content/uploads/2023/11/Favicon.png';
-  var WHATS_PADRAO = '5511986860210';
+  var WHATS_PADRAO = '5511986860287';   // só para falha de sistema; no uso normal o WhatsApp é o do vendedor do rodízio (sem número fixo, pedido da Amanda)
 
   // produtos do site. "re" reconhece o produto pelo endereço da página em que a pessoa estava
   var PRODUTOS = [
@@ -633,6 +633,68 @@
     });
   }
 
+  /* ---------- modo contato: orçamento, pedido de quem já é cliente ou outro assunto ---------- */
+  function botaoWhats(numero, texto) {
+    var linha = document.createElement('div'); linha.className = 'row bot quick fim';
+    linha.innerHTML = avatar(true) + '<a class="cta" target="_blank" rel="noopener" href="https://wa.me/' + soDigitos(numero || WHATS_PADRAO) + '?text=' + encodeURIComponent(texto) + '">' +
+      WA_ICON.replace(' class="wa"', '') + 'Continuar no WhatsApp</a>';
+    chat.appendChild(linha); rolar(); $('#fill').style.width = '100%';
+  }
+  var foneOk = function (v) { var d = soDigitos(v); return (d.length === 10 || d.length === 11) && d.charAt(0) !== '0' ? '' : 'Confira o número: DDD mais o telefone, por exemplo (11) 99999-9999.'; };
+  var campoFone = function () { return { texto: true, rotulo: 'WhatsApp com DDD', tipo: 'tel', modo: 'tel', auto: 'tel-national', dica: '(11) 99999-9999', mascara: fmtFone, validar: foneOk }; };
+  /** Devolve true quando a pessoa quer orçamento (a conversa normal segue); false quando o contato termina aqui. */
+  async function contato() {
+    var vend = V, EQUIPE = { id: null, nome: '', whatsapp: vend.whatsapp, foto: null, artigo: 'a' };
+    var titulo = function (a, b) { $('.brand .t1').textContent = a; $('.brand .t2').textContent = b; };
+    var depois = function () { return EXP.aberto ? '' : ' Respondo ' + esc(EXP.volta || 'no próximo dia útil') + '.'; };
+    titulo('Fale com a GoBanners', 'Orçamento, pedidos e outros assuntos'); $('#stepinfo').hidden = true;
+    V = EQUIPE;
+    await bot('Oi! Aqui é a equipe da GoBanners. Como podemos ajudar?', 700);
+    var a = await perguntar({ texto: false, opcoes: [{ rotulo: 'Quero um orçamento', valor: 'orc' }, { rotulo: 'Já sou cliente, é sobre um pedido', valor: 'cli' }, { rotulo: 'Outro assunto', valor: 'out' }] });
+    if (a.valor === 'orc') { V = vend; titulo('Solicitar orçamento', 'Leva menos de 1 minuto'); $('#stepinfo').hidden = false; return true; }
+
+    var areas = [];
+    if (a.valor === 'out') {
+      var rd = await api('salvar-passo', { session_id: L.session_id, departamentos: true });
+      areas = ((rd && rd.departamentos) || []).filter(function (d) { return d.id !== 'pedido'; });
+    }
+    if (a.valor === 'cli' || !areas.length) {
+      // quem já é cliente fala com o vendedor que já o atende; se o cadastro não for encontrado, com o vendedor da vez
+      await bot('Certo. Para localizar o seu atendimento, qual é o seu <b>WhatsApp com DDD</b>?');
+      a = await perguntar(campoFone());
+      L.whatsapp = soDigitos(a.valor); V = vend;
+      var rv = await gravar(1, { verificar_conta: true, tipo: 'contato' });
+      if (rv && rv.ok && rv.trocou && rv.consultora) { V = rv.consultora; DISTRIBUICAO = rv.motivo || DISTRIBUICAO; }
+      api('salvar-passo', { session_id: L.session_id, contato_departamento: 'pedido' });
+      var nomeCli = rv && rv.conhecido && rv.conhecido.nome ? ', ' + esc(primeiroNome(capitalizar(rv.conhecido.nome))) : '';
+      await bot('Oi' + nomeCli + '! ' + souEu() + ' Vou cuidar do seu atendimento. Clique no botão abaixo para falar comigo pelo WhatsApp.' + depois());
+      botaoWhats(V.whatsapp, 'Oi' + (V.nome ? ', ' + V.nome : '') + '! Já sou cliente da GoBanners e preciso falar sobre um pedido.');
+      return false;
+    }
+
+    await bot('Sobre qual assunto você precisa falar?');
+    a = await perguntar({ texto: false, opcoes: areas.map(function (d) { return { rotulo: d.label, valor: d.id }; }) });
+    var area = areas.filter(function (d) { return d.id === a.valor; })[0];
+    await bot('Qual é o seu <b>nome</b>?');
+    a = await perguntar({ texto: true, rotulo: 'Nome', auto: 'name', dica: 'Seu nome', validar: function (v) { return v.replace(/[^A-Za-zÀ-ÿ]/g, '').length >= 2 ? '' : 'Escreva o seu nome para continuar.'; } });
+    L.nome = capitalizar(a.valor);
+    await bot('Prazer, ' + esc(primeiroNome(L.nome)) + '. Qual é o seu <b>WhatsApp com DDD</b>?');
+    a = await perguntar(campoFone());
+    L.whatsapp = soDigitos(a.valor);
+    // contato de outra área não entra no rodízio dos vendedores
+    await gravar(1, { consultora_id: null, distribuicao: 'contato: ' + area.label, tipo: 'contato' });
+    await bot('Em poucas palavras, qual é o assunto?');
+    a = await perguntar({ texto: true, rotulo: 'Assunto', dica: 'Escreva aqui' });
+    var assunto = a.valor;
+    var espe = balao('<span class="typing"><i></i><i></i><i></i></span>');
+    var rc = await api('salvar-passo', { session_id: L.session_id, contato_departamento: area.id, assunto: assunto }, 20000);
+    espe.remove();
+    V = { id: null, nome: (rc && rc.pessoa) || area.pessoa, whatsapp: (rc && rc.whatsapp) || area.whatsapp, foto: (rc && rc.foto) || area.foto_url || null, artigo: ((rc && rc.artigo) || area.artigo) === 'o' ? 'o' : 'a' };
+    await bot('Oi, ' + esc(primeiroNome(L.nome)) + '! ' + souEu() + ' Sou eu quem cuida de <b>' + esc(area.label) + '</b>. Clique no botão abaixo para falar comigo pelo WhatsApp.' + depois());
+    botaoWhats(V.whatsapp, 'Oi, ' + V.nome + '! Sou ' + L.nome + '. Preciso falar sobre: ' + assunto);
+    return false;
+  }
+
   /* ---------- roteiro ---------- */
   async function conversa() {
     // abertura: o rodízio define o vendedor antes da primeira mensagem
@@ -640,6 +702,8 @@
     var r0 = await api('salvar-passo', { session_id: L.session_id, distribuir: true, forcar: forcar || undefined }, 8000);
     if (r0 && r0.ok && r0.consultora) { V = r0.consultora; DISTRIBUICAO = r0.motivo || ''; if (r0.expediente) EXP = r0.expediente; }
     mostrarVendedor();
+
+    if (qs.get('modo') === 'contato' && !(await contato())) return;   // menu "Contato" do site
 
     TOTAL = 8; passo(1);
     var abertura = 'Oi! ' + souEu() + ' Vou anotar algumas informações do seu pedido para já continuar o atendimento com você pelo WhatsApp.';

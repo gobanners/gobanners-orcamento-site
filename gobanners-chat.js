@@ -18,6 +18,8 @@
      data-base="https://atendimento.gobanners.com.br/"   endereço do chat
      data-nova-aba="sim"                                  botões abrem o chat em nova aba em vez de tela cheia
      data-texto="Solicitar orçamento"                     texto do botão flutuante
+     data-auto-abrir="10"                                 segundos até a janelinha subir sozinha, pela metade da altura
+                                                          (só no computador, uma vez por visita); "nao" desliga
    ===================================================================== */
 (function () {
   'use strict';
@@ -34,6 +36,7 @@
   var FONES = String(ds.whatsapp || '').split(',').map(function (n) { return n.replace(/\D/g, '').replace(/^55/, ''); }).filter(function (n) { return n.length >= 10; });
   var WA_CENTRAL = { test: function (h) { if (!FONES.length || !/(wa\.me|whatsapp\.com)\//.test(h)) return false; var d = String(h).replace(/\D/g, ''); return FONES.some(function (n) { return d.indexOf(n) >= 0; }); } };
   var TEXTO = ds.texto || 'Solicitar orçamento';
+  var AUTO = /^(nao|0)$/.test(String(ds.autoAbrir || '')) ? 0 : (parseFloat(ds.autoAbrir) || 10);   // segundos; 0 = não abre sozinha
   var MOBILE = function () { return window.innerWidth <= 640; };
 
   /* ---------- UTMs: primeiro toque guardado em cookie ---------- */
@@ -86,7 +89,8 @@
     '.gbc-fundo{position:fixed;inset:0;z-index:2147483000;background:rgba(20,26,51,.55);display:none;opacity:0;transition:opacity .2s}' +
     '.gbc-fundo.on{display:block;opacity:1}' +
     '.gbc-painel{position:fixed;right:20px;bottom:20px;width:420px;height:min(700px,calc(100vh - 40px));z-index:2147483001;' +
-      'background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 24px 60px rgba(20,26,51,.35);display:none;transform:translateY(16px);opacity:0;transition:transform .22s,opacity .22s}' +
+      'background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 24px 60px rgba(20,26,51,.35);display:none;transform:translateY(16px);opacity:0;transition:transform .22s,opacity .22s,height .25s}' +
+    '.gbc-painel.meia{height:min(460px,calc(100vh - 40px))}' +
     '.gbc-painel.on{display:block;transform:none;opacity:1}' +
     '.gbc-painel.cheia{inset:0;width:auto;height:auto;border-radius:0;box-shadow:none}' +
     '.gbc-painel iframe{width:100%;height:100%;border:0;display:block}' +
@@ -122,6 +126,7 @@
       if (e.origin !== ORIGEM) return;
       var d = e.data || {};
       if (d.gobanners === 'fechar') fechar();
+      if (d.gobanners === 'interagiu') painel.classList.remove('meia');   // abriu sozinha pela metade: cresce quando a pessoa começa a responder
       // lead concluído no chat (07/11/2026): avisa o Google Tag Manager / GA4 do site (o Google Ads é avisado pela própria página do chat)
       if (d.gobanners === 'lead') {
         try { (window.dataLayer = window.dataLayer || []).push({ event: 'gobanners_lead', gobanners_produto: d.produto || '' }); } catch (err) {}
@@ -151,19 +156,24 @@
     opts = opts || {};
     if (opts.cheia && NOVA_ABA) { window.open(urlDoChat(opts), '_blank', 'noopener'); return; }
     montar();
+    jaAbriu();
     painel.classList.toggle('cheia', !!opts.cheia);
+    painel.classList.toggle('meia', !!opts.auto);
     var src = urlDoChat(opts);
     if (src !== srcAtual) {   // mesma conversa se reabrir com o mesmo contexto
       // replace(): troca a página do iframe SEM criar entrada no histórico do navegador
       // (com frame.src o "voltar" do navegador voltava o iframe para a tela anterior, sem cabeçalho)
-      try { frame.contentWindow.location.replace(src); } catch (e) { frame.src = src; }
+      var alvo = src + (opts.auto ? '&auto=1' : '');   // auto=1: a página do chat se arruma para caber na metade da altura
+      try { frame.contentWindow.location.replace(alvo); } catch (e) { frame.src = alvo; }
       srcAtual = src;
     }
-    ultimoFoco = document.activeElement;
-    fundo.classList.add('on'); painel.classList.add('on');
+    painel.classList.add('on');
     if (bolha) bolha.style.display = 'none';
+    if (opts.auto) { aberto = true; return; }   // subiu sozinha: não escurece a página, não trava a rolagem, não rouba o foco
+    ultimoFoco = document.activeElement;
+    fundo.classList.add('on');
     document.documentElement.classList.add('gbc-trava');
-    if (!aberto) { try { history.pushState({ gbc: 1 }, ''); } catch (e) {} }   // "voltar" do navegador fecha o chat em vez de sair do site
+    if (!(history.state && history.state.gbc)) { try { history.pushState({ gbc: 1 }, ''); } catch (e) {} }   // "voltar" do navegador fecha o chat em vez de sair do site
     aberto = true;
     try { frame.contentWindow.postMessage({ gobanners: (MOBILE() || opts.cheia) ? 'expandido' : 'recolhido' }, ORIGEM); } catch (e) {}
     setTimeout(function () { try { frame.focus(); } catch (e) {} }, 250);
@@ -182,6 +192,20 @@
     document.documentElement.classList.remove('gbc-trava');
     aberto = false;
     if (ultimoFoco && ultimoFoco.focus) { try { ultimoFoco.focus(); } catch (e) {} }
+  }
+
+  /* ---------- Abre sozinha depois de um tempo (23/11/2026, como o Leadster fazia) ----------
+     Só no computador (no celular o chat ocupa a tela inteira), uma vez por visita, e nunca depois de a pessoa já ter aberto ou fechado. */
+  function jaAbriu() { try { sessionStorage.setItem('gbc_abriu', '1'); } catch (e) {} }
+  function abriuAntes() { try { return sessionStorage.getItem('gbc_abriu') === '1'; } catch (e) { return false; } }
+  function agendarAuto() {
+    if (!AUTO || !FLUTUANTE || abriuAntes()) return;
+    var tentar = function () {
+      if (aberto || abriuAntes() || MOBILE()) return;
+      if (document.visibilityState !== 'visible') { document.addEventListener('visibilitychange', function v() { if (document.visibilityState === 'visible') { document.removeEventListener('visibilitychange', v); setTimeout(tentar, 2000); } }); return; }
+      abrir(Object.assign({}, window.GB_CHAT || {}, { cheia: false, auto: true }));
+    };
+    setTimeout(tentar, AUTO * 1000);
   }
 
   /* ---------- Gatilhos: links/botões do site ---------- */
@@ -221,6 +245,7 @@
     bolha.addEventListener('click', function () { abrir(Object.assign({}, window.GB_CHAT || {}, { cheia: false })); });
     document.body.appendChild(bolha);
     vigiarRodape();
+    agendarAuto();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', montarBolha); else montarBolha();
 

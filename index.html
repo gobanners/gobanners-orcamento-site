@@ -340,6 +340,10 @@
   body.embed .chat { padding: 14px 12px 10px; }
   body.embed .dock { padding: 8px 12px calc(10px + env(safe-area-inset-bottom, 0px)); }
   body.embed .proto { display: none; }
+  /* janelinha que subiu sozinha, pela metade da altura: só o essencial até a pessoa tocar */
+  body.meia .proof .pill:nth-child(n+3), body.meia .legal { display: none; }
+  body.meia .chat { font-size: 15px; padding-top: 10px; }
+  body.meia .chat * { font-size: inherit; }
   .fechar {
     position: fixed; top: 8px; right: 8px; z-index: 20;
     width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line);
@@ -514,6 +518,12 @@
   var chat = $('#chat'), dock = $('#dock');
   var qs = new URLSearchParams(location.search);
   if (qs.get('embed')) document.body.classList.add('embed');   // dentro da janelinha do botão flutuante: sem a linha do logotipo
+  // janelinha que subiu sozinha pela metade: avisa o site no primeiro toque ou tecla, para ela crescer
+  if (qs.get('embed') && window.parent !== window) (function () {
+    if (qs.get('auto')) document.body.classList.add('meia');
+    var avisar = function () { document.body.classList.remove('meia'); setTimeout(function () { try { rolar(); } catch (e) {} }, 300); try { window.parent.postMessage({ gobanners: 'interagiu' }, '*'); } catch (e) {} document.removeEventListener('pointerdown', avisar, true); document.removeEventListener('keydown', avisar, true); };
+    document.addEventListener('pointerdown', avisar, true); document.addEventListener('keydown', avisar, true);
+  })();
   var espera = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
   var soDigitos = function (s) { return String(s || '').replace(/\D/g, ''); };

@@ -652,7 +652,7 @@
     function perguntaDoProduto(k, n) {
       var P = function () { var r = ROTEIRO[L.produto_id]; return r && r.perguntas[k]; };
       return { n: n, voltar: 'Corrigir a resposta anterior', pular: function () { return !P(); },
-        antes: function () { var r = ROTEIRO[L.produto_id]; return k === 0 && r && r.intro ? 'Ótima escolha, ' + esc(primeiroNome(L.nome)) + '! 😊 ' + r.intro : ''; },
+        antes: function () { var r = ROTEIRO[L.produto_id]; return k === 0 && r && r.intro ? (L.produto_deduzido ? 'Prazer, ' : 'Ótima escolha, ') + esc(primeiroNome(L.nome)) + '! 😊 ' + r.intro : ''; },
         pergunta: function () { return P()[1]; },
         campo: function () { var o = P()[2]; return o ? { texto: false, opcoes: o.map(function (t) { return { rotulo: t, valor: t }; }) } : { texto: true, rotulo: P()[0], dica: 'Escreva aqui' }; },
         guardar: function (a) { L.respostas = L.respostas || {}; L.respostas[P()[0]] = a.valor; } };
@@ -663,14 +663,20 @@
         pergunta: function (de) { return de ? 'Sem problema. Qual é o seu <b>nome e sobrenome</b>?' : 'Para começar, qual é o seu <b>nome e sobrenome</b>?'; },
         campo: function () { return { texto: true, rotulo: 'Nome completo', auto: 'name', dica: 'Seu nome e sobrenome', validar: function (v) { return v.replace(/[^A-Za-zÀ-ÿ]/g, '').length >= 2 ? '' : 'Escreva o seu nome para continuar.'; } }; },
         guardar: function (a) { L.nome = /[a-zà-ÿ]/.test(a.valor) && /[A-ZÀ-Ý]/.test(a.valor) ? a.valor.replace(/\s+/g, ' ').trim() : capitalizar(a.valor); } },
+      // produto logo depois do nome (pedido da Amanda, 23/11): só pergunta quando a pessoa não veio de uma página de produto
+      { n: 2, voltar: 'Trocar o produto', pular: function () { return L.produto_deduzido; },
+        pergunta: function (de) { return (de ? '' : 'Prazer, ' + esc(primeiroNome(L.nome)) + '. ') + 'Qual <b>produto</b> você precisa orçar?'; },
+        campo: function () { return { texto: false, opcoes: PRODUTOS.map(function (p) { return { rotulo: p.nome, valor: p.id }; }).concat([{ rotulo: 'Outro', valor: 'outro', leve: true }]) }; },
+        guardar: function (a) { L.produto_id = a.valor; L.produto_nome = a.valor === 'outro' ? 'Outro produto' : a.rotulo; L.respostas = {}; } },
+      perguntaDoProduto(0, 3), perguntaDoProduto(1, 4),
       // WhatsApp: aqui o lead passa a contar no rodízio; e se a pessoa já é cliente, volta para quem já a atende
-      { n: 2, voltar: 'Corrigir o WhatsApp',
-        pergunta: function (de) { return (de ? 'Sem problema. ' : 'Prazer, ' + esc(primeiroNome(L.nome)) + '. ') + 'Qual é o seu <b>WhatsApp com DDD</b>?'; },
+      { n: 5, voltar: 'Corrigir o WhatsApp',
+        pergunta: function (de) { return (de ? 'Sem problema. ' : 'Para eu continuar o seu atendimento, ') + (de ? 'Qual' : 'qual') + ' é o seu <b>WhatsApp com DDD</b>?'; },
         campo: function () { return { texto: true, rotulo: 'WhatsApp com DDD', tipo: 'tel', modo: 'tel', auto: 'tel-national', dica: '(11) 99999-9999', mascara: fmtFone,
           validar: function (v) { var d = soDigitos(v); return (d.length === 10 || d.length === 11) && d.charAt(0) !== '0' ? '' : 'Confira o número: DDD mais o telefone, por exemplo (11) 99999-9999.'; } }; },
         guardar: async function (a) {
           L.whatsapp = soDigitos(a.valor);
-          var rv = await gravar(2, { verificar_conta: true });
+          var rv = await gravar(5, { verificar_conta: true });
           CONHECIDO = rv && rv.ok && rv.conhecido ? rv.conhecido : null; outraEmpresa = false;
           if (CONHECIDO && CONHECIDO.empresa) CONHECIDO.empresa = nomeEmpresa(CONHECIDO.empresa);
           if (rv && rv.ok && rv.trocou && rv.consultora) {
@@ -684,12 +690,12 @@
           }
           return true;   // já gravou
         } },
-      { n: 3, voltar: 'Corrigir o e-mail',
+      { n: 6, voltar: 'Corrigir o e-mail',
         pergunta: function (de) { return (de ? 'Sem problema. ' : '') + 'Qual é o seu <b>e-mail</b>?'; },
         campo: function () { return { texto: true, rotulo: 'E-mail', tipo: 'email', modo: 'email', auto: 'email', dica: 'nome@empresa.com.br',
           validar: function (v) { return /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(v) ? '' : 'Confira o e-mail, por exemplo nome@empresa.com.br.'; } }; },
         guardar: function (a) { L.email = a.valor.toLowerCase(); } },
-      { n: 4, voltar: 'Corrigir a empresa',
+      { n: 7, voltar: 'Corrigir a empresa',
         // quem já está na base só confirma a empresa; os outros escrevem o nome
         confirma: function () { return !!(CONHECIDO && CONHECIDO.empresa) && !outraEmpresa; },
         pergunta: function (de) { if (de) outraEmpresa = false; return this.confirma() ? 'Você continua na <b>' + esc(CONHECIDO.empresa) + '</b>?' : (de ? 'Sem problema. ' : '') + 'Qual é o nome da sua <b>empresa</b>?'; },
@@ -702,18 +708,12 @@
           if (a.pulou) { L.pessoa_fisica = true; L.empresa = ''; } else { L.pessoa_fisica = false; L.empresa = a.valor.replace(/\s+/g, ' ').trim(); }
         } },
       // CNPJ: opcional, e só para quem informou empresa
-      { n: 5, voltar: 'Corrigir o CNPJ', pular: function () { return L.pessoa_fisica || L.empresa_confirmada; },
+      { n: 8, voltar: 'Corrigir o CNPJ', pular: function () { return L.pessoa_fisica || L.empresa_confirmada; },
         pergunta: function (de) { return (de ? 'Sem problema. ' : '') + 'Qual é o <b>CNPJ</b> da empresa? Se não tiver em mãos agora, pode informar depois.'; },
         campo: function () { return { texto: true, rotulo: 'CNPJ (opcional)', modo: 'numeric', dica: '00.000.000/0000-00', mascara: fmtCnpj,
           validar: function (v) { return cnpjValido(v) ? '' : 'Confira o CNPJ: são 14 números. Se preferir, toque em "Informar depois".'; },
           opcoes: [{ rotulo: 'Informar depois', valor: '', pula: true, leve: true }] }; },
-        guardar: function (a) { L.cnpj = a.pulou ? '' : soDigitos(a.valor); } },
-      // produto: só quando a pessoa não veio de uma página de produto
-      { n: 6, voltar: 'Trocar o produto', pular: function () { return L.produto_deduzido; },
-        pergunta: function () { return 'Qual <b>produto</b> você precisa orçar?'; },
-        campo: function () { return { texto: false, opcoes: PRODUTOS.map(function (p) { return { rotulo: p.nome, valor: p.id }; }).concat([{ rotulo: 'Outro', valor: 'outro', leve: true }]) }; },
-        guardar: function (a) { L.produto_id = a.valor; L.produto_nome = a.valor === 'outro' ? 'Outro produto' : a.rotulo; L.respostas = {}; } },
-      perguntaDoProduto(0, 7), perguntaDoProduto(1, 8)
+        guardar: function (a) { L.cnpj = a.pulou ? '' : soDigitos(a.valor); } }
     ];
     var ativos = function () { return PASSOS.filter(function (p) { return !(p.pular && p.pular()); }); };
     var i = 0, deVolta = false;
@@ -741,9 +741,8 @@
       origem_url: L.origem_url, origem_pagina: L.origem_pagina, utms: L.utms }, 20000);
     if (rf && rf.consultora) { V = Object.assign({}, V, rf.consultora); if (rf.expediente) EXP = rf.expediente; mostrarVendedor(); }
     var pedido = L.produto_nome && L.produto_id !== 'outro' ? ' de ' + esc(L.produto_nome) : '';
-    espe.querySelector('.bubble').innerHTML = 'Perfeito, ' + esc(primeiroNome(L.nome)) + '! Recebi a sua solicitação de orçamento' + pedido + '. ' +
-      (EXP.aberto ? 'Clique no botão abaixo para continuar o atendimento comigo pelo WhatsApp.'
-        : 'Clique no botão abaixo para me chamar no WhatsApp. Respondo ' + esc(EXP.volta || 'no próximo dia útil') + '.');
+    espe.querySelector('.bubble').innerHTML = 'Perfeito, ' + esc(primeiroNome(L.nome)) + '! 😊 Recebi sua solicitação de orçamento' + pedido + '.<br><br>' +
+      'Agora é só clicar no botão abaixo para continuar seu atendimento comigo pelo WhatsApp.' + (EXP.aberto ? '' : ' Respondo ' + esc(EXP.volta || 'no próximo dia útil') + '.');
     var texto = 'Oi' + (V.nome ? ', ' + V.nome : '') + '! Sou ' + L.nome + (L.empresa ? ', da empresa ' + L.empresa : '') + '. Acabei de pedir um orçamento' + (L.produto_nome && L.produto_id !== 'outro' ? ' de ' + L.produto_nome : '') + ' pelo site.';
     var fimRow = document.createElement('div'); fimRow.className = 'row bot quick fim';
     fimRow.innerHTML = avatar(true) + '<a class="cta" target="_blank" rel="noopener" href="https://wa.me/' + soDigitos(V.whatsapp || WHATS_PADRAO) + '?text=' + encodeURIComponent(texto) + '">' +

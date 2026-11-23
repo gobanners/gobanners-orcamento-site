@@ -276,7 +276,7 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&
 const fone = (d) => { d = String(d || '').replace(/\D/g, ''); return d.length === 11 ? `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}` : d.length === 10 ? `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}` : d; };
 const dt = (s) => s ? new Date(s).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) : '';
 // última pergunta respondida, por passo. Preencher com o roteiro aprovado da GoBanners.
-const PERGUNTAS = { 0: 'abriu', 1: 'nome (parou no WhatsApp)', 2: 'WhatsApp (parou no e-mail)', 3: 'e-mail (parou na empresa)', 4: 'empresa (parou no CNPJ)', 5: 'CNPJ (parou no produto)', 6: 'produto (parou nas perguntas do produto)', 7: '1ª pergunta do produto', 8: '2ª pergunta do produto' };
+const PERGUNTAS = { 0: 'abriu', 1: 'nome (parou no produto)', 2: 'produto (parou nas perguntas do produto)', 3: '1ª pergunta do produto', 4: 'perguntas do produto (parou no WhatsApp)', 5: 'WhatsApp (parou no e-mail)', 6: 'e-mail (parou na empresa)', 7: 'empresa (parou no CNPJ)', 8: 'CNPJ' };
 const PD = 'https://gobanners.pipedrive.com';
 let CONS = [], LEADS = [], DEPS = [], PODE_APAGAR = false, VE_TUDO = false;
 

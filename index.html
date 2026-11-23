@@ -429,7 +429,7 @@
         <img class="logo" src="https://gobanners.com.br/wp-content/uploads/2024/01/GoBanners-Logotipo-Horizontal.svg" alt="GoBanners">
         <div class="txt"><div class="t1">Solicitar orçamento</div><div class="t2">Leva menos de 1 minuto</div></div>
       </div>
-      <div class="stepinfo" id="stepinfo">Passo <b><span id="stepNow">1</span></b> de <span id="stepTotal">6</span></div>
+      <div class="stepinfo" id="stepinfo">Passo <b><span id="stepNow">1</span></b> de <span id="stepTotal">8</span></div>
     </div>
     <div class="track" aria-hidden="true"><div class="fill" id="fill"></div></div>
     <div class="proof" aria-label="Sobre a GoBanners">
@@ -478,6 +478,37 @@
     { id: 'biruta', nome: 'Biruta', re: /biruta/ },
     { id: 'capa-para-gradil', nome: 'Capa para Gradil', re: /gradil/ }
   ];
+
+  /* Perguntas de cada produto: intro (dita depois da escolha) e até duas perguntas. Cada pergunta: [rótulo na nota do Pipedrive, texto, opções].
+     Sem opções = resposta escrita. Fonte: documento "Ajustes nos Formulários — GoBanners". */
+  var ONDE = 'Onde vai usar', ORIENTA = 'Não, preciso de orientação';
+  var ROTEIRO = {
+    'wind-banner': { intro: 'Somos especialistas em Wind Banners e vou ajudar você a encontrar a opção ideal.', perguntas: [
+      ['Tamanho', 'Você já sabe qual <b>tamanho</b> precisa?', ['Sim, já sei o tamanho', ORIENTA]],
+      [ONDE, 'E onde você pretende utilizar o seu Wind Banner?', ['Na fachada da minha loja', 'Em feiras ou eventos', 'Em ações promocionais', 'Outro local']]] },
+    'banner-roll-up': { intro: 'Trabalhamos com diferentes tamanhos de Banner Roll-Up, ideais para destacar a sua marca em ambientes internos.', perguntas: [
+      ['Tamanho', 'Qual <b>tamanho</b> de Roll-Up você procura?', ['0,80 × 2,00 m', '1,00 × 2,00 m', '1,20 × 2,00 m', '1,50 × 2,00 m', 'Ainda não sei, preciso de orientação']],
+      [ONDE, 'Onde você pretende utilizar o seu Roll-Up?', ['Em feiras ou eventos', 'Em lojas ou pontos de venda', 'Em apresentações ou ambientes corporativos', 'Outro local']]] },
+    'cavalete': { intro: 'Trabalhamos com diferentes tamanhos de cavaletes e vou ajudar você a encontrar a opção ideal para a sua necessidade.', perguntas: [
+      ['Tamanho', 'Você já sabe qual <b>tamanho</b> de cavalete precisa?', ['Sim, já sei o tamanho', ORIENTA]],
+      [ONDE, 'Onde você pretende utilizar o seu cavalete?', ['Na frente da minha loja', 'Em calçadas ou áreas externas', 'Em feiras ou eventos', 'Em ambientes internos', 'Outro local']]] },
+    'boneco-interativo': { intro: 'Trabalhamos com diferentes modelos de Bonecos Interativos, que podem ser personalizados para combinar com a identidade da sua marca.', perguntas: [
+      ['Modelo', 'Você já tem uma ideia de como gostaria que fosse o seu Boneco Interativo?', ['Sim, já tenho um modelo em mente', 'Ainda não, gostaria de conhecer as opções']]] },
+    'banner-tripe': { intro: 'Temos o tripé para banner, com a opção de adquirir somente o suporte ou o conjunto completo com banner.', perguntas: [
+      ['Opção', 'Você precisa de qual opção?', ['Somente o tripé', 'Tripé com banner', 'Ainda não sei, preciso de orientação']]] },
+    'mochila-pirulito': { intro: 'A Mochila Pirulito é uma excelente opção para dar mais visibilidade à sua marca em ações promocionais e eventos.', perguntas: [
+      ['Conhece o produto', 'Você já conhece a Mochila Pirulito ou gostaria de receber orientação sobre os modelos disponíveis?', ['Sim, já conheço o produto', 'Gostaria de conhecer melhor as opções']]] },
+    'backdrop': { intro: 'Trabalhamos com diferentes opções de Backdrop para destacar a sua marca em feiras, eventos e espaços de exposição.', perguntas: [
+      ['Modelo', 'Qual <b>modelo</b> de Backdrop você procura?', ['Backdrop Fixo (estrutura tradicional)', 'Painel Retrátil Pop-Up (montagem e desmontagem prática)', 'Ainda não sei, preciso de orientação']],
+      ['Tamanho', 'Você já sabe qual <b>tamanho</b> precisa?', ['Sim, já sei o tamanho', ORIENTA]]] },
+    'biruta': { intro: 'A Biruta é uma excelente opção para chamar a atenção e dar mais visibilidade ao seu negócio.', perguntas: [
+      ['Personalização', 'Como você gostaria da sua Biruta?', ['Lisa (sem personalização)', 'Personalizada com minha marca', 'Ainda não sei, preciso de orientação']],
+      ['O que precisa', 'O que você precisa?', ['Kit completo (Biruta + Exaustor)', 'Somente o tecido da Biruta', 'Somente o exaustor']]] },
+    'capa-para-gradil': { intro: 'Produzimos Capas para Gradil sob medida, ideais para destacar a sua marca em eventos, feiras e ações promocionais.', perguntas: [
+      ['Medidas', 'Você já sabe as <b>medidas</b> do gradil que deseja revestir?', ['Sim, já tenho as medidas', ORIENTA]],
+      [ONDE, 'Onde você pretende utilizar a sua Capa para Gradil?', ['Em eventos e shows', 'Em feiras e exposições', 'Em ações promocionais', 'Outro local']]] },
+    'outro': { intro: '', perguntas: [['Produto procurado', 'Qual produto você procura?', null]] }
+  };
 
   var $ = function (s) { return document.querySelector(s); };
   var chat = $('#chat'), dock = $('#dock');
@@ -540,7 +571,7 @@
   function gravar(passo, extra) {
     var corpo = { session_id: L.session_id, passo: passo, nome: L.nome || undefined, whatsapp: L.whatsapp || undefined, ddi: L.ddi, email: L.email || undefined,
       empresa: L.empresa || undefined, cnpj: L.cnpj || undefined, pessoa_fisica: L.pessoa_fisica, produto_id: L.produto_id || undefined, produto_nome: L.produto_nome || undefined,
-      origem_url: L.origem_url, origem_pagina: L.origem_pagina, utms: L.utms, consultora_id: V.id || undefined, distribuicao: DISTRIBUICAO || undefined };
+      respostas: L.respostas || undefined, origem_url: L.origem_url, origem_pagina: L.origem_pagina, utms: L.utms, consultora_id: V.id || undefined, distribuicao: DISTRIBUICAO || undefined };
     if (extra) for (var k in extra) corpo[k] = extra[k];
     return api('salvar-passo', corpo);
   }
@@ -609,13 +640,22 @@
     if (r0 && r0.ok && r0.consultora) { V = r0.consultora; DISTRIBUICAO = r0.motivo || ''; if (r0.expediente) EXP = r0.expediente; }
     mostrarVendedor();
 
-    TOTAL = L.produto_nome ? 5 : 6; passo(1);
+    TOTAL = 8; passo(1);
     var abertura = 'Oi! ' + souEu() + ' Vou anotar algumas informações do seu pedido para já continuar o atendimento com você pelo WhatsApp.';
     if (L.produto_nome) abertura += ' Vi que você tem interesse em <b>' + esc(L.produto_nome) + '</b>.';
     if (!EXP.aberto) { var volta = EXP.volta || 'no próximo dia útil'; abertura += '<span class="fora-exp">🌙 Agora estamos fora do expediente, mas pode deixar tudo por aqui. <b>' + esc(volta.charAt(0).toUpperCase() + volta.slice(1)) + '</b>, eu continuo com você.</span>'; }
     await bot(abertura, 900);
     /* Cada passo: n (número no contador), pular (quando não se aplica), voltar (rótulo do botão que traz de volta a ele),
        pergunta (texto), campo (como responder) e guardar (o que fazer com a resposta). */
+    // as perguntas próprias do produto escolhido (ou do produto da página por onde a pessoa chegou)
+    function perguntaDoProduto(k, n) {
+      var P = function () { var r = ROTEIRO[L.produto_id]; return r && r.perguntas[k]; };
+      return { n: n, voltar: 'Corrigir a resposta anterior', pular: function () { return !P(); },
+        antes: function () { var r = ROTEIRO[L.produto_id]; return k === 0 && r && r.intro ? 'Ótima escolha, ' + esc(primeiroNome(L.nome)) + '! 😊 ' + r.intro : ''; },
+        pergunta: function () { return P()[1]; },
+        campo: function () { var o = P()[2]; return o ? { texto: false, opcoes: o.map(function (t) { return { rotulo: t, valor: t }; }) } : { texto: true, rotulo: P()[0], dica: 'Escreva aqui' }; },
+        guardar: function (a) { L.respostas = L.respostas || {}; L.respostas[P()[0]] = a.valor; } };
+    }
     var CONHECIDO = null, outraEmpresa = false;   // pessoa que já está na base: quem é e em que empresa está
     var PASSOS = [
       { n: 1, voltar: 'Corrigir meu nome',
@@ -668,10 +708,11 @@
           opcoes: [{ rotulo: 'Informar depois', valor: '', pula: true, leve: true }] }; },
         guardar: function (a) { L.cnpj = a.pulou ? '' : soDigitos(a.valor); } },
       // produto: só quando a pessoa não veio de uma página de produto
-      { n: 6, pular: function () { return L.produto_deduzido; },
+      { n: 6, voltar: 'Trocar o produto', pular: function () { return L.produto_deduzido; },
         pergunta: function () { return 'Qual <b>produto</b> você precisa orçar?'; },
         campo: function () { return { texto: false, opcoes: PRODUTOS.map(function (p) { return { rotulo: p.nome, valor: p.id }; }).concat([{ rotulo: 'Outro', valor: 'outro', leve: true }]) }; },
-        guardar: function (a) { L.produto_id = a.valor; L.produto_nome = a.valor === 'outro' ? 'Outro produto' : a.rotulo; return true; } }
+        guardar: function (a) { L.produto_id = a.valor; L.produto_nome = a.valor === 'outro' ? 'Outro produto' : a.rotulo; L.respostas = {}; } },
+      perguntaDoProduto(0, 7), perguntaDoProduto(1, 8)
     ];
     var ativos = function () { return PASSOS.filter(function (p) { return !(p.pular && p.pular()); }); };
     var i = 0, deVolta = false;
@@ -679,6 +720,8 @@
       var lista = ativos(); if (i >= lista.length) break;
       var p = lista[i], anterior = i > 0 ? lista[i - 1] : null;
       passo(Math.min(p.n, TOTAL));
+      var antes = !deVolta && p.antes ? p.antes() : '';
+      if (antes) await bot(antes, 700);
       await bot(p.pergunta(deVolta), i === 0 && !deVolta ? 600 : 700);
       var o = p.campo(); if (anterior && anterior.voltar) o.voltar = anterior.voltar;
       var a = await perguntar(o);
@@ -693,16 +736,17 @@
     // fim: grava completo, cria no Pipedrive e mostra o WhatsApp do vendedor
     var espe = balao('<span class="typing"><i></i><i></i><i></i></span>');
     var rf = await api('finalizar-lead', { session_id: L.session_id, nome: L.nome, whatsapp: L.whatsapp, ddi: L.ddi, email: L.email || null, empresa: L.empresa || '', cnpj: L.cnpj || undefined, empresa_digitada: L.empresa_digitada || undefined,
-      pessoa_fisica: L.pessoa_fisica, produto_id: L.produto_id || null, produto_nome: L.produto_nome || null, produto_deduzido: L.produto_deduzido,
+      pessoa_fisica: L.pessoa_fisica, produto_id: L.produto_id || null, produto_nome: L.produto_nome || null, produto_deduzido: L.produto_deduzido, respostas: L.respostas || undefined,
       origem_url: L.origem_url, origem_pagina: L.origem_pagina, utms: L.utms }, 20000);
     if (rf && rf.consultora) { V = Object.assign({}, V, rf.consultora); if (rf.expediente) EXP = rf.expediente; mostrarVendedor(); }
     var pedido = L.produto_nome && L.produto_id !== 'outro' ? ' de ' + esc(L.produto_nome) : '';
-    espe.querySelector('.bubble').innerHTML = obrigado() + ', ' + esc(primeiroNome(L.nome)) + '. Recebi o seu pedido de orçamento' + pedido + ' e vou falar com você pelo WhatsApp ' +
-      (EXP.aberto ? 'em instantes' : (EXP.volta || 'no próximo dia útil')) + '. Se preferir, pode me chamar pelo botão abaixo.';
+    espe.querySelector('.bubble').innerHTML = 'Perfeito, ' + esc(primeiroNome(L.nome)) + '! Recebi a sua solicitação de orçamento' + pedido + '. ' +
+      (EXP.aberto ? 'Clique no botão abaixo para continuar o atendimento comigo pelo WhatsApp.'
+        : 'Clique no botão abaixo para me chamar no WhatsApp. Respondo ' + esc(EXP.volta || 'no próximo dia útil') + '.');
     var texto = 'Oi' + (V.nome ? ', ' + V.nome : '') + '! Sou ' + L.nome + (L.empresa ? ', da empresa ' + L.empresa : '') + '. Acabei de pedir um orçamento' + (L.produto_nome && L.produto_id !== 'outro' ? ' de ' + L.produto_nome : '') + ' pelo site.';
     var fimRow = document.createElement('div'); fimRow.className = 'row bot quick fim';
     fimRow.innerHTML = avatar(true) + '<a class="cta" target="_blank" rel="noopener" href="https://wa.me/' + soDigitos(V.whatsapp || WHATS_PADRAO) + '?text=' + encodeURIComponent(texto) + '">' +
-      WA_ICON.replace(' class="wa"', '') + 'Chamar no WhatsApp</a>';
+      WA_ICON.replace(' class="wa"', '') + 'Continuar no WhatsApp</a>';
     chat.appendChild(fimRow); rolar();
     $('#stepinfo').hidden = true; $('#fill').style.width = '100%';
     try { if (window.parent !== window) window.parent.postMessage({ gobanners: 'lead', produto: L.produto_nome || '' }, '*'); } catch (e) { /* fora de iframe */ }

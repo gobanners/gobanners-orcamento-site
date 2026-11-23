@@ -513,6 +513,7 @@
   var $ = function (s) { return document.querySelector(s); };
   var chat = $('#chat'), dock = $('#dock');
   var qs = new URLSearchParams(location.search);
+  if (qs.get('embed')) document.body.classList.add('embed');   // dentro da janelinha do botão flutuante: sem a linha do logotipo
   var espera = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
   var soDigitos = function (s) { return String(s || '').replace(/\D/g, ''); };

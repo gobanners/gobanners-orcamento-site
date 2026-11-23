@@ -706,7 +706,9 @@
     if (qs.get('modo') === 'contato' && !(await contato())) return;   // menu "Contato" do site
 
     TOTAL = 8; passo(1);
-    var abertura = 'Oi! ' + souEu() + ' Vou anotar algumas informações do seu pedido para já continuar o atendimento com você pelo WhatsApp.';
+    // abertura padronizada pela Amanda (23/11/2026), igual para todos os vendedores
+    var abertura = 'Oi! 😊 ' + (V.nome ? 'Eu sou ' + (V.artigo === 'o' ? 'o ' : 'a ') + '<b>' + esc(V.nome) + '</b>, da GoBanners, e vou ajudar você com o seu orçamento!' : 'Aqui é a equipe da GoBanners, e vamos ajudar você com o seu orçamento!') +
+      '<br><br>Vou fazer algumas perguntas rápidas para entender o que você precisa e dar continuidade ao seu atendimento.';
     if (L.produto_nome) abertura += ' Vi que você tem interesse em <b>' + esc(L.produto_nome) + '</b>.';
     if (!EXP.aberto) { var volta = EXP.volta || 'no próximo dia útil'; abertura += '<span class="fora-exp">🌙 Agora estamos fora do expediente, mas pode deixar tudo por aqui. <b>' + esc(volta.charAt(0).toUpperCase() + volta.slice(1)) + '</b>, eu continuo com você.</span>'; }
     await bot(abertura, 900);

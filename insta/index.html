@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orçamento GoBanners</title>
+<!-- Link curto do Instagram da GoBanners: abre o chat já marcado como vindo do Instagram (bio). -->
+<script>
+  (function () {
+    var q = new URLSearchParams(location.search);   // mantém o que o Instagram acrescentar (fbclid etc.)
+    q.set('utm_source', 'instagram'); q.set('utm_medium', 'social'); if (!q.get('utm_campaign')) q.set('utm_campaign', 'bio');
+    location.replace('/?' + q.toString());
+  })();
+</script>
+<noscript><meta http-equiv="refresh" content="0; url=/?utm_source=instagram&amp;utm_medium=social&amp;utm_campaign=bio"></noscript>
+</head>
+<body></body>
+</html>

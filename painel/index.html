@@ -276,7 +276,9 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&
 const fone = (d) => { d = String(d || '').replace(/\D/g, ''); return d.length === 11 ? `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}` : d.length === 10 ? `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}` : d; };
 const dt = (s) => s ? new Date(s).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) : '';
 // última pergunta respondida, por passo. Preencher com o roteiro aprovado da GoBanners.
-const PERGUNTAS = { 0: 'abriu', 1: 'nome (parou no produto)', 2: 'produto (parou nas perguntas do produto)', 3: '1ª pergunta do produto', 4: 'perguntas do produto (parou no WhatsApp)', 5: 'WhatsApp (parou no e-mail)', 6: 'e-mail (parou na empresa)', 7: 'empresa (parou no CNPJ)', 8: 'CNPJ' };
+const PERGUNTAS = {0:'abriu',1:'nome (parou no WhatsApp)',2:'WhatsApp (parou no produto)',3:'produto (parou nas perguntas do produto)',4:'1ª pergunta do produto',5:'perguntas do produto (parou no e-mail)',6:'e-mail (parou na empresa)',7:'empresa (parou no CNPJ)',8:'CNPJ'};
+// leads do roteiro antigo (até 24/11/2026 o WhatsApp era a 5ª pergunta) não seguem a numeração de hoje
+function etapaDe(L) { return !L.whatsapp && L.passo >= 2 ? 'saiu antes do WhatsApp (roteiro antigo)' : (PERGUNTAS[L.passo] || 'passo ' + L.passo); }
 const PD = 'https://gobanners.pipedrive.com';
 let CONS = [], LEADS = [], DEPS = [], PODE_APAGAR = false, VE_TUDO = false;
 
@@ -386,7 +388,7 @@ function statusDe(L) {
   if (L.status === 'resgatado') return ['resgatado', 'Resgatado', 'resg'];
   if (L.status === 'repetido') return ['repetido', 'Repetido · já tinha negócio', 'rep'];
   if (L.status === 'fora_catalogo') return ['fora_catalogo', 'Fora do catálogo · ' + (L.detalhe || ''), 'rep'];
-  return ['parcial', 'Incompleto · ' + (PERGUNTAS[L.passo] || 'passo ' + L.passo), 'parcial'];
+  return ['parcial', 'Incompleto · ' + etapaDe(L), 'parcial'];
 }
 function filtrados() {
   const st = $('#fStatus').value, co = $('#fCons').value, q = $('#fBusca').value.trim().toLowerCase();
@@ -538,7 +540,7 @@ function renderNumeros() {
   const mx = Math.max(1, ...Object.values(porDia));
   $('#gDias').innerHTML = Object.entries(porDia).map(([d, n]) => `<div class="dia" style="height:${Math.max(2, n / mx * 100)}%"><span class="tip">${d.split('-').reverse().slice(0, 2).join('/')}: ${n}</span></div>`).join('');
   const inc = orc.filter(L => L.status !== 'completo');
-  const etapas = {}; inc.forEach(L => { const k = PERGUNTAS[L.passo] || 'passo ' + L.passo; etapas[k] = (etapas[k] || 0) + 1; });
+  const etapas = {}; inc.forEach(L => { const k = etapaDe(L); etapas[k] = (etapas[k] || 0) + 1; });
   barras($('#gEtapas'), Object.entries(etapas).sort((a, b) => b[1] - a[1]), inc.length);
   const pc = {}; comp.forEach(L => { const n = CONS.find(c => c.id === L.consultora_id)?.nome || L.consultora_id || '?'; pc[n] = (pc[n] || 0) + 1; });
   barras($('#gCons'), Object.entries(pc).sort((a, b) => b[1] - a[1]), comp.length);

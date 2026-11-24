@@ -766,7 +766,7 @@
     function perguntaDoProduto(k, n) {
       var P = function () { var r = ROTEIRO[L.produto_id]; return r && r.perguntas[k]; };
       return { n: n, voltar: 'Corrigir a resposta anterior', pular: function () { return !P(); },
-        antes: function () { var r = ROTEIRO[L.produto_id]; return k === 0 && r && r.intro ? (L.produto_deduzido ? 'Prazer, ' : 'Ótima escolha, ') + esc(primeiroNome(L.nome)) + '! 😊 ' + r.intro : ''; },
+        antes: function () { var r = ROTEIRO[L.produto_id]; return k === 0 && r && r.intro ? (L.produto_deduzido ? 'Perfeito, ' : 'Ótima escolha, ') + esc(primeiroNome(L.nome)) + '! 😊 ' + r.intro : ''; },
         pergunta: function () { return P()[1]; },
         campo: function () { var o = P()[2]; return o ? { texto: false, opcoes: o.map(function (t) { return { rotulo: t, valor: t }; }) } : { texto: true, rotulo: P()[0], dica: 'Escreva aqui' }; },
         guardar: function (a) { L.respostas = L.respostas || {}; L.respostas[P()[0]] = a.valor; } };
@@ -777,20 +777,15 @@
         pergunta: function (de) { return de ? 'Sem problema. Qual é o seu <b>nome e sobrenome</b>?' : 'Para começar, qual é o seu <b>nome e sobrenome</b>?'; },
         campo: function () { return { texto: true, rotulo: 'Nome completo', auto: 'name', dica: 'Seu nome e sobrenome', validar: function (v) { return v.replace(/[^A-Za-zÀ-ÿ]/g, '').length >= 2 ? '' : 'Escreva o seu nome para continuar.'; } }; },
         guardar: function (a) { L.nome = /[a-zà-ÿ]/.test(a.valor) && /[A-ZÀ-Ý]/.test(a.valor) ? a.valor.replace(/\s+/g, ' ').trim() : capitalizar(a.valor); } },
-      // produto logo depois do nome (pedido da Amanda, 23/11): só pergunta quando a pessoa não veio de uma página de produto
-      { n: 2, voltar: 'Trocar o produto', pular: function () { return L.produto_deduzido; },
-        pergunta: function (de) { return (de ? '' : 'Prazer, ' + esc(primeiroNome(L.nome)) + '. ') + 'Qual <b>produto</b> você precisa orçar?'; },
-        campo: function () { return { texto: false, opcoes: PRODUTOS.map(function (p) { return { rotulo: p.nome, valor: p.id }; }).concat([{ rotulo: 'Outro', valor: 'outro', leve: true }]) }; },
-        guardar: function (a) { L.produto_id = a.valor; L.produto_nome = a.valor === 'outro' ? 'Outro produto' : a.rotulo; L.respostas = {}; } },
-      perguntaDoProduto(0, 3), perguntaDoProduto(1, 4),
-      // WhatsApp: aqui o lead passa a contar no rodízio; e se a pessoa já é cliente, volta para quem já a atende
-      { n: 5, voltar: 'Corrigir o WhatsApp',
-        pergunta: function (de) { return (de ? 'Sem problema. ' : 'Para eu continuar o seu atendimento, ') + (de ? 'Qual' : 'qual') + ' é o seu <b>WhatsApp com DDD</b>?'; },
+      // WhatsApp logo depois do nome (decisão da Amanda e da Lívia, 24/11/2026, como na RVB): quem abandona depois daqui pode ser resgatado.
+      // Aqui o lead passa a contar no rodízio; e se a pessoa já é cliente, volta para quem já a atende
+      { n: 2, voltar: 'Corrigir o WhatsApp',
+        pergunta: function (de) { return (de ? 'Sem problema. Qual' : 'Prazer, ' + esc(primeiroNome(L.nome)) + '. Para eu continuar o seu atendimento, qual') + ' é o seu <b>WhatsApp com DDD</b>?'; },
         campo: function () { return { texto: true, rotulo: 'WhatsApp com DDD', tipo: 'tel', modo: 'tel', auto: 'tel-national', dica: '(11) 99999-9999', mascara: fmtFone,
           validar: function (v) { var d = soDigitos(v); return (d.length === 10 || d.length === 11) && d.charAt(0) !== '0' ? '' : 'Confira o número: DDD mais o telefone, por exemplo (11) 99999-9999.'; } }; },
         guardar: async function (a) {
           L.whatsapp = soDigitos(a.valor);
-          var rv = await gravar(5, { verificar_conta: true });
+          var rv = await gravar(2, { verificar_conta: true });
           CONHECIDO = rv && rv.ok && rv.conhecido ? rv.conhecido : null; outraEmpresa = false;
           if (CONHECIDO && CONHECIDO.empresa) CONHECIDO.empresa = nomeEmpresa(CONHECIDO.empresa);
           if (rv && rv.ok && rv.trocou && rv.consultora) {
@@ -804,6 +799,12 @@
           }
           return true;   // já gravou
         } },
+      // produto: só pergunta quando a pessoa não veio de uma página de produto
+      { n: 3, voltar: 'Trocar o produto', pular: function () { return L.produto_deduzido; },
+        pergunta: function (de) { return (de ? 'Sem problema. Qual' : 'Agora, qual') + ' <b>produto</b> você precisa orçar?'; },
+        campo: function () { return { texto: false, opcoes: PRODUTOS.map(function (p) { return { rotulo: p.nome, valor: p.id }; }).concat([{ rotulo: 'Outro', valor: 'outro', leve: true }]) }; },
+        guardar: function (a) { L.produto_id = a.valor; L.produto_nome = a.valor === 'outro' ? 'Outro produto' : a.rotulo; L.respostas = {}; } },
+      perguntaDoProduto(0, 4), perguntaDoProduto(1, 5),
       { n: 6, voltar: 'Corrigir o e-mail',
         pergunta: function (de) { return (de ? 'Sem problema. ' : '') + 'Qual é o seu <b>e-mail</b>?'; },
         campo: function () { return { texto: true, rotulo: 'E-mail', tipo: 'email', modo: 'email', auto: 'email', dica: 'nome@empresa.com.br',

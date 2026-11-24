@@ -130,7 +130,7 @@
       // lead concluído no chat (07/11/2026): avisa o Google Tag Manager / GA4 do site (o Google Ads é avisado pela própria página do chat)
       if (d.gobanners === 'lead') {
         try { (window.dataLayer = window.dataLayer || []).push({ event: 'gobanners_lead', gobanners_produto: d.produto || '' }); } catch (err) {}
-        try { if (typeof window.gtag === 'function') window.gtag('event', 'generate_lead', { source: 'chat_gobanners', item_name: d.produto || '' }); } catch (err) {}
+        // o generate_lead do GA4 sai da própria página do chat (24/11/2026); aqui repetiria a contagem
       }
       if (d.gobanners === 'expandir') { try { frame.contentWindow.postMessage({ gobanners: 'expandido' }, ORIGEM); } catch (err) {} }
     });

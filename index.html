@@ -6,6 +6,16 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#0A2B60">
 <title>Orçamento GoBanners</title>
+<!-- Tag do Google (24/11/2026): Google Ads e GA4 da GoBanners. Esta página fica fora do WordPress, então o GTM do site não a cobre. -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-800111619"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag() { dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'AW-800111619', { allow_enhanced_conversions: true });
+  // dentro do site (janela flutuante ou tela cheia) a visita já foi contada pela página do site: não conta página vista de novo
+  gtag('config', 'G-DHQ4LMSER2', { send_page_view: window.parent === window });
+</script>
 <link rel="icon" type="image/png" href="https://gobanners.com.br/wp-content/uploads/2023/11/Favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap">
@@ -573,6 +583,33 @@
   var TOTAL = 5;
   function passo(n) { $('#stepNow').textContent = Math.min(n, TOTAL); $('#stepTotal').textContent = TOTAL; $('#fill').style.width = Math.round((n - 1) / TOTAL * 100) + '%'; }
 
+  /* ---------- Google Ads e GA4 ----------
+     Conversão "Lead — Chat Inteligente": dispara uma vez, quando o lead fica completo (resposta do finalizar-lead),
+     nunca para repetido nem para o modo contato (que não chega a este ponto do roteiro). */
+  var GADS_CONVERSAO = '';   // 'AW-800111619/RÓTULO' da ação de conversão; vazio = não dispara a conversão do Google Ads
+  var GA4 = 'G-DHQ4LMSER2';
+  var ultimoPasso = 0, concluiu = false, avisouAbandono = false;
+  function avisarGoogle(repetido) {
+    concluiu = true;
+    if (repetido || typeof gtag !== 'function') return;
+    try {
+      // conversões otimizadas: o gtag faz o hash antes de enviar
+      var partes = String(L.nome || '').trim().split(/\s+/), dados = {};
+      if (L.email) dados.email = String(L.email).trim().toLowerCase();
+      if (L.whatsapp) dados.phone_number = '+' + (L.ddi || '55') + soDigitos(L.whatsapp);
+      if (partes[0]) dados.address = { first_name: partes[0], last_name: partes.slice(1).join(' '), country: 'BR' };
+      gtag('set', 'user_data', dados);
+      if (GADS_CONVERSAO) gtag('event', 'conversion', { send_to: GADS_CONVERSAO, transaction_id: L.session_id });
+      gtag('event', 'generate_lead', { send_to: GA4, product: L.produto_nome || '', step: ultimoPasso });
+    } catch (e) { console.warn('aviso ao Google:', e); }
+  }
+  // saiu da página com a conversa começada e sem concluir: o GA4 enxerga em que passo parou
+  window.addEventListener('pagehide', function () {
+    if (concluiu || avisouAbandono || ultimoPasso < 1 || typeof gtag !== 'function' || qs.get('modo') === 'contato' && !L.nome) return;
+    avisouAbandono = true;
+    try { gtag('event', 'chat_abandonado', { send_to: GA4, step: ultimoPasso, product: L.produto_nome || '', transport_type: 'beacon' }); } catch (e) {}
+  });
+
   /* ---------- servidor ---------- */
   function api(nome, corpo, limite) {
     var ctrl = new AbortController(); var t = setTimeout(function () { ctrl.abort(); }, limite || 12000);
@@ -580,6 +617,7 @@
       .then(function (r) { return r.json(); }).catch(function (e) { return { ok: false, erro: String(e) }; }).finally(function () { clearTimeout(t); });
   }
   function gravar(passo, extra) {
+    if (!(extra && extra.tipo === 'contato') && Number(passo) > ultimoPasso) ultimoPasso = Number(passo);
     var corpo = { session_id: L.session_id, passo: passo, nome: L.nome || undefined, whatsapp: L.whatsapp || undefined, ddi: L.ddi, email: L.email || undefined,
       empresa: L.empresa || undefined, cnpj: L.cnpj || undefined, pessoa_fisica: L.pessoa_fisica, produto_id: L.produto_id || undefined, produto_nome: L.produto_nome || undefined,
       respostas: L.respostas || undefined, origem_url: L.origem_url, origem_pagina: L.origem_pagina, utms: L.utms, consultora_id: V.id || undefined, distribuicao: DISTRIBUICAO || undefined };
@@ -816,6 +854,8 @@
       pessoa_fisica: L.pessoa_fisica, produto_id: L.produto_id || null, produto_nome: L.produto_nome || null, produto_deduzido: L.produto_deduzido, respostas: L.respostas || undefined,
       origem_url: L.origem_url, origem_pagina: L.origem_pagina, utms: L.utms }, 20000);
     if (rf && rf.consultora) { V = Object.assign({}, V, rf.consultora); if (rf.expediente) EXP = rf.expediente; mostrarVendedor(); }
+    ultimoPasso = 8;
+    if (rf && rf.ok) avisarGoogle(!!rf.repetido); else concluiu = true;   // falha do servidor: o lead não ficou completo, não conta
     var pedido = L.produto_nome && L.produto_id !== 'outro' ? ' de ' + esc(L.produto_nome) : '';
     espe.querySelector('.bubble').innerHTML = 'Perfeito, ' + esc(primeiroNome(L.nome)) + '! 😊 Recebi sua solicitação de orçamento' + pedido + '.<br><br>' +
       'Agora é só clicar no botão abaixo para continuar seu atendimento comigo pelo WhatsApp.' + (EXP.aberto ? '' : ' Respondo ' + esc(EXP.volta || 'no próximo dia útil') + '.');

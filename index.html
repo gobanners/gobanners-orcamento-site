@@ -543,7 +543,10 @@
   var nomeEmpresa = function (n) { n = String(n || '').trim(); return n && n === n.toUpperCase() ? n.split(/\s+/).map(function (w, i) { return i === 0 && w.length <= 4 ? w : (/^(DA|DE|DO|DAS|DOS|E)$/.test(w) ? w.toLowerCase() : w.charAt(0) + w.slice(1).toLowerCase()); }).join(' ') : n; };
   var fmtCnpj = function (v) { var d = soDigitos(v).slice(0, 14); return d.replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1/$2').replace(/(\d{4})(\d)/, '$1-$2'); };
   var cnpjValido = function (v) { var d = soDigitos(v); if (d.length !== 14 || /^(\d)\1+$/.test(d)) return false; var dv = function (n) { var p = n - 7, s = 0; for (var i = 0; i < n; i++) { s += +d.charAt(i) * p--; if (p < 2) p = 9; } var r = s % 11; return r < 2 ? 0 : 11 - r; }; return dv(12) === +d.charAt(12) && dv(13) === +d.charAt(13); };
-  var fmtFone = function (d) { d = soDigitos(d).slice(0, 11); if (d.length <= 2) return d; if (d.length <= 6) return '(' + d.slice(0, 2) + ') ' + d.slice(2); if (d.length <= 10) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6); return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7); };
+  // quem digita ou cola com o código do país (+55 11 9...) ou com zero na frente: tira antes de cortar em 11 dígitos.
+  // Em 25/11/2026 um número colado com 55 foi cortado no meio e o lead ficou com telefone errado.
+  var limparFone = function (v) { var d = soDigitos(v); if (d.length > 11 && d.slice(0, 2) === '55') d = d.slice(2); if (d.charAt(0) === '0') d = d.replace(/^0+/, ''); return d.slice(0, 11); };
+  var fmtFone = function (d) { d = limparFone(d); if (d.length <= 2) return d; if (d.length <= 6) return '(' + d.slice(0, 2) + ') ' + d.slice(2); if (d.length <= 10) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6); return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7); };
 
   /* ---------- de onde a pessoa veio ---------- */
   var utms = {};
@@ -688,7 +691,14 @@
       WA_ICON.replace(' class="wa"', '') + 'Continuar no WhatsApp</a>';
     chat.appendChild(linha); rolar(); $('#fill').style.width = '100%';
   }
-  var foneOk = function (v) { var d = soDigitos(v); return (d.length === 10 || d.length === 11) && d.charAt(0) !== '0' ? '' : 'Confira o número: DDD mais o telefone, por exemplo (11) 99999-9999.'; };
+  var foneOk = function (v) {
+    var d = limparFone(v), erro = 'Confira o número: DDD mais o telefone, por exemplo (11) 99999-9999.';
+    if (d.length !== 10 && d.length !== 11) return erro;
+    if (!/^[1-9][1-9]/.test(d)) return erro;                       // DDD não tem zero
+    if (d.length === 11 && d.charAt(2) !== '9') return erro;       // celular: o número começa com 9
+    if (/^(\d)\1+$/.test(d.slice(2))) return erro;                  // 99999-9999, 00000-0000
+    return '';
+  };
   var campoFone = function () { return { texto: true, rotulo: 'WhatsApp com DDD', tipo: 'tel', modo: 'tel', auto: 'tel-national', dica: '(11) 99999-9999', mascara: fmtFone, validar: foneOk }; };
   /** Devolve true quando a pessoa quer orçamento (a conversa normal segue); false quando o contato termina aqui. */
   async function contato() {
@@ -710,7 +720,7 @@
       // quem já é cliente fala com o vendedor que já o atende; se o cadastro não for encontrado, com o vendedor da vez
       await bot('Certo. Para localizar o seu atendimento, qual é o seu <b>WhatsApp com DDD</b>?');
       a = await perguntar(campoFone());
-      L.whatsapp = soDigitos(a.valor); V = vend;
+      L.whatsapp = limparFone(a.valor); V = vend;
       var rv = await gravar(1, { verificar_conta: true, tipo: 'contato' });
       if (rv && rv.ok && rv.trocou && rv.consultora) { V = rv.consultora; DISTRIBUICAO = rv.motivo || DISTRIBUICAO; }
       api('salvar-passo', { session_id: L.session_id, contato_departamento: 'pedido' });
@@ -728,7 +738,7 @@
     L.nome = capitalizar(a.valor);
     await bot('Prazer, ' + esc(primeiroNome(L.nome)) + '. Qual é o seu <b>WhatsApp com DDD</b>?');
     a = await perguntar(campoFone());
-    L.whatsapp = soDigitos(a.valor);
+    L.whatsapp = limparFone(a.valor);
     // contato de outra área não entra no rodízio dos vendedores
     await gravar(1, { consultora_id: null, distribuicao: 'contato: ' + area.label, tipo: 'contato' });
     await bot('Em poucas palavras, qual é o assunto?');
@@ -820,9 +830,9 @@
           if (L.duvida && !duvidaAvisada) { duvidaAvisada = true; return 'Prazer, ' + esc(primeiroNome(L.nome)) + '. Anotei a sua pergunta e respondo pelo WhatsApp, junto com o seu orçamento. Qual é o seu <b>WhatsApp com DDD</b>?'; }
           return 'Prazer, ' + esc(primeiroNome(L.nome)) + '. Para eu continuar o seu atendimento, qual é o seu <b>WhatsApp com DDD</b>?'; },
         campo: function () { return { texto: true, rotulo: 'WhatsApp com DDD', tipo: 'tel', modo: 'tel', auto: 'tel-national', dica: '(11) 99999-9999', mascara: fmtFone,
-          validar: function (v) { var d = soDigitos(v); return (d.length === 10 || d.length === 11) && d.charAt(0) !== '0' ? '' : 'Confira o número: DDD mais o telefone, por exemplo (11) 99999-9999.'; } }; },
+          validar: function (v) { return foneOk(v); } }; },
         guardar: async function (a) {
-          L.whatsapp = soDigitos(a.valor);
+          L.whatsapp = limparFone(a.valor);
           var rv = await gravar(2, { verificar_conta: true });
           CONHECIDO = rv && rv.ok && rv.conhecido ? rv.conhecido : null; outraEmpresa = false;
           if (CONHECIDO && CONHECIDO.empresa) CONHECIDO.empresa = nomeEmpresa(CONHECIDO.empresa);

@@ -771,16 +771,54 @@
         campo: function () { var o = P()[2]; return o ? { texto: false, opcoes: o.map(function (t) { return { rotulo: t, valor: t }; }) } : { texto: true, rotulo: P()[0], dica: 'Escreva aqui' }; },
         guardar: function (a) { L.respostas = L.respostas || {}; L.respostas[P()[0]] = a.valor; } };
     }
+    /* Pergunta escrita no lugar do nome ("quais os preços de...", "preciso só da impressão, qual o valor?").
+       O chat anota a pergunta para o consultor (vai para a nota do Pipedrive) e não a trata como nome. */
+    var pediuNomeDeNovo = false, duvidaAvisada = false;
+    function parecePergunta(t) {
+      var n = t.split(' ').length;
+      if (/\?/.test(t) || n > 6) return true;
+      // começa como pergunta ou pedido
+      if (/^(quais|qual|quanto|quantos|como|preciso|quero|queria|gostaria|or[çc]amento|pre[çc]os?|valor|valores|voc[êe]s|vcs|tem como)([^a-zà-ÿ]|$)/i.test(t)) return true;
+      // nome curto (até 2 palavras) nunca é tratado como pergunta: existem sobrenomes como Valor e Prazo
+      return n >= 3 && /(^|[^a-zà-ÿ])(gostaria|or[çc]amento|voc[êe]s|vcs|preciso|quero|queria|fazem|vend[ea]m|atendem|quanto|quantos|quais|qual|valor|valores|pre[çc]os?|tem como|consegue|comprar|cota[çc][ãa]o|prazo|entrega|tamanhos?|medidas?)([^a-zà-ÿ]|$)/i.test(t);
+    }
+    // "me chamo José Almeida", "oi, sou a Carla, quanto custa...": aproveita o nome que veio na frase
+    function nomeNaFrase(t) {
+      var m = t.match(/(?:meu nome [eé]|me chamo|eu sou|aqui [eé] [oa]|aqui [eé]|sou [oa]|sou)\s+([A-Za-zÀ-ÿ]{2,}(?:\s+(?:d[aeo]s?\s+)?[A-Za-zÀ-ÿ]{2,}){0,3})/i);
+      if (!m) return '';
+      var partes = m[1].split(' '), fica = [];
+      for (var k = 0; k < partes.length; k++) { if (k > 0 && parecePergunta(partes[k])) break; fica.push(partes[k]); }
+      while (fica.length && /^d[aeo]s?$/i.test(fica[fica.length - 1])) fica.pop();
+      var n = fica.join(' ');
+      return /^(voc[êe]s?|vcs|cliente|d[aeo]s?|interessad[oa])$/i.test(fica[0] || '') ? '' : capitalizar(n);
+    }
+    function guardarDuvida(t) {
+      L.duvida = (L.duvida ? L.duvida + ' / ' : '') + t.slice(0, 300);
+      L.respostas = L.respostas || {}; L.respostas['Pergunta do cliente'] = L.duvida;
+    }
     var CONHECIDO = null, outraEmpresa = false;   // pessoa que já está na base: quem é e em que empresa está
     var PASSOS = [
       { n: 1, voltar: 'Corrigir meu nome',
-        pergunta: function (de) { return de ? 'Sem problema. Qual é o seu <b>nome e sobrenome</b>?' : 'Para começar, qual é o seu <b>nome e sobrenome</b>?'; },
+        pergunta: function (de) {
+          // a pessoa escreveu uma pergunta no lugar do nome: o chat reconhece, anota e pede o nome de novo (25/11/2026)
+          if (pediuNomeDeNovo && !L.nome) { duvidaAvisada = true; return 'Anotei a sua pergunta e respondo pelo WhatsApp, junto com o seu orçamento. Antes, qual é o seu <b>nome e sobrenome</b>?'; }
+          return de ? 'Sem problema. Qual é o seu <b>nome e sobrenome</b>?' : 'Para começar, qual é o seu <b>nome e sobrenome</b>?'; },
         campo: function () { return { texto: true, rotulo: 'Nome completo', auto: 'name', dica: 'Seu nome e sobrenome', validar: function (v) { return v.replace(/[^A-Za-zÀ-ÿ]/g, '').length >= 2 ? '' : 'Escreva o seu nome para continuar.'; } }; },
-        guardar: function (a) { L.nome = /[a-zà-ÿ]/.test(a.valor) && /[A-ZÀ-Ý]/.test(a.valor) ? a.valor.replace(/\s+/g, ' ').trim() : capitalizar(a.valor); } },
+        guardar: function (a) {
+          var txt = a.valor.replace(/\s+/g, ' ').trim();
+          var achado = nomeNaFrase(txt), pergunta = parecePergunta(txt);
+          if (pergunta) guardarDuvida(txt);
+          if (pergunta && !achado && !pediuNomeDeNovo) { pediuNomeDeNovo = true; L.nome = ''; return 'repetir'; }   // pede o nome de novo, uma vez só
+          txt = achado || txt;
+          L.nome = /[a-zà-ÿ]/.test(txt) && /[A-ZÀ-Ý]/.test(txt) ? txt : capitalizar(txt);
+        } },
       // WhatsApp logo depois do nome (decisão da Amanda e da Lívia, 24/11/2026, como na RVB): quem abandona depois daqui pode ser resgatado.
       // Aqui o lead passa a contar no rodízio; e se a pessoa já é cliente, volta para quem já a atende
       { n: 2, voltar: 'Corrigir o WhatsApp',
-        pergunta: function (de) { return (de ? 'Sem problema. Qual' : 'Prazer, ' + esc(primeiroNome(L.nome)) + '. Para eu continuar o seu atendimento, qual') + ' é o seu <b>WhatsApp com DDD</b>?'; },
+        pergunta: function (de) {
+          if (de) return 'Sem problema. Qual é o seu <b>WhatsApp com DDD</b>?';
+          if (L.duvida && !duvidaAvisada) { duvidaAvisada = true; return 'Prazer, ' + esc(primeiroNome(L.nome)) + '. Anotei a sua pergunta e respondo pelo WhatsApp, junto com o seu orçamento. Qual é o seu <b>WhatsApp com DDD</b>?'; }
+          return 'Prazer, ' + esc(primeiroNome(L.nome)) + '. Para eu continuar o seu atendimento, qual é o seu <b>WhatsApp com DDD</b>?'; },
         campo: function () { return { texto: true, rotulo: 'WhatsApp com DDD', tipo: 'tel', modo: 'tel', auto: 'tel-national', dica: '(11) 99999-9999', mascara: fmtFone,
           validar: function (v) { var d = soDigitos(v); return (d.length === 10 || d.length === 11) && d.charAt(0) !== '0' ? '' : 'Confira o número: DDD mais o telefone, por exemplo (11) 99999-9999.'; } }; },
         guardar: async function (a) {
@@ -803,7 +841,7 @@
       { n: 3, voltar: 'Trocar o produto', pular: function () { return L.produto_deduzido; },
         pergunta: function (de) { return (de ? 'Sem problema. Qual' : 'Agora, qual') + ' <b>produto</b> você precisa orçar?'; },
         campo: function () { return { texto: false, opcoes: PRODUTOS.map(function (p) { return { rotulo: p.nome, valor: p.id }; }).concat([{ rotulo: 'Outro', valor: 'outro', leve: true }]) }; },
-        guardar: function (a) { L.produto_id = a.valor; L.produto_nome = a.valor === 'outro' ? 'Outro produto' : a.rotulo; L.respostas = {}; } },
+        guardar: function (a) { L.produto_id = a.valor; L.produto_nome = a.valor === 'outro' ? 'Outro produto' : a.rotulo; L.respostas = {}; if (L.duvida) L.respostas['Pergunta do cliente'] = L.duvida; } },
       perguntaDoProduto(0, 4), perguntaDoProduto(1, 5),
       { n: 6, voltar: 'Corrigir o e-mail',
         pergunta: function (de) { return (de ? 'Sem problema. ' : '') + 'Qual é o seu <b>e-mail</b>?'; },

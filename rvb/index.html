@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orçamento GoBanners</title>
+<!-- Link curto para clientes indicados pela RVB Balões: abre o chat já marcado como indicação da RVB. -->
+<script>
+  (function () {
+    var q = new URLSearchParams(location.search);   // mantém parâmetros extras, como produto_id
+    q.set('utm_source', 'rvb'); q.set('utm_medium', 'indicacao'); if (!q.get('utm_campaign')) q.set('utm_campaign', 'indicacao-rvb');
+    location.replace('/?' + q.toString());
+  })();
+</script>
+<noscript><meta http-equiv="refresh" content="0; url=/?utm_source=rvb&amp;utm_medium=indicacao&amp;utm_campaign=indicacao-rvb"></noscript>
+</head>
+<body></body>
+</html>
